@@ -60,6 +60,9 @@ def add_object(args: argparse.Namespace, kp: PyKeePass, config: dict[str, Any]):
                 domain=args.domain,
             )
             add_credentials(kp, [credential_to_add])
+            # If set flag is provided, automatically set the credential
+            if args.set:
+                write_credential_in_profile(credential_to_add, config)
         else:  # If no arguments are given, display the TUI adding screen
             app = DbCredsApp(config, kp, show_add_screen=True)
             app.run()
@@ -67,6 +70,9 @@ def add_object(args: argparse.Namespace, kp: PyKeePass, config: dict[str, Any]):
         if any([args.ip, args.hostname, args.role]):
             host_to_add = Host(ip=args.ip, hostname=args.hostname, role=args.role)
             add_hosts(kp, [host_to_add])
+            # If set flag is provided, automatically set the host
+            if args.set:
+                write_host_in_profile(host_to_add, config)
         else:  # If no arguments are given, display the TUI adding screen
             app = DbHostsApp(config, kp, show_add_screen=True)
             app.run()
