@@ -5,10 +5,9 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from pykeepass import PyKeePass, create_database
+from sqlalchemy import Engine, create_engine
 
-from exegol_history.db_api.creds import Credential
-from exegol_history.db_api.hosts import Host
+from exegol_history.db_api.creds import Base
 
 
 class AppConfig:
@@ -20,11 +19,17 @@ class AppConfig:
     PROFILE_SH_FILENAME_WINDOWS = "profile.ps1"
 
     @classmethod
-    def setup_db(cls, db_path: str, db_key_path: str) -> None:
-        cls.__setup_generate_keyfile(db_key_path)
-        create_database(db_path, keyfile=db_key_path)
-        kp = PyKeePass(db_path, keyfile=db_key_path)
-        cls.__setup_groups(kp)
+    def setup_db(cls, db_path: str, db_key_path: str) -> Engine:
+        path = Path(db_path)
+
+        if path.is_absolute():
+            engine = create_engine(f"sqlite:////{db_path}")
+        else:
+            engine = create_engine(f"sqlite:///{db_path}")
+
+        Base.metadata.create_all(engine)
+
+        return engine
 
     @staticmethod
     def __setup_generate_keyfile(db_key_path: str) -> None:
@@ -34,13 +39,6 @@ class AppConfig:
             Path(db_key_path).parent.mkdir(parents=True, exist_ok=True)
             with open(db_key_path, "wb") as key_file:
                 key_file.write(random_bytes)
-
-    @staticmethod
-    def __setup_groups(kp: PyKeePass) -> None:
-        kp.add_group(kp.root_group, Credential.GROUP_NAME)
-        kp.add_group(kp.root_group, Host.GROUP_NAME)
-
-        kp.save()
 
     @classmethod
     def setup_profile(cls, profile_path: str):

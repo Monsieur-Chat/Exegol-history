@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import Engine
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.db_api.creds import Credential, get_credentials
 from common import (
@@ -9,7 +10,6 @@ from common import (
     select_input_and_enter_text,
     select_input_erase_and_enter_text,
 )
-from pykeepass import PyKeePass
 from typing import Any
 from exegol_history.tui.widgets.credential_form import (
     ID_CONFIRM_BUTTON,
@@ -22,10 +22,9 @@ from exegol_history.tui.widgets.credential_form import (
 
 @pytest.mark.asyncio
 async def test_edit_credential_only_username(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any]
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
+    app = DbCredsApp(load_mock_config, engine)
     add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
     edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
 
@@ -36,7 +35,9 @@ async def test_edit_credential_only_username(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [Credential(id="1", username=USERNAME_TEST_VALUE)]
+        assert get_credentials(engine) == [
+            Credential(id=1, username=USERNAME_TEST_VALUE)
+        ]
 
         await pilot.press(edit_credential_keybind)
         await select_input_erase_and_enter_text(
@@ -44,17 +45,14 @@ async def test_edit_credential_only_username(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [
-            Credential(id="1", username=USERNAME_TEST_VALUE + "2")
+        assert get_credentials(engine) == [
+            Credential(id=1, username=USERNAME_TEST_VALUE + "2")
         ]
 
 
 @pytest.mark.asyncio
-async def test_edit_credential_full(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
+async def test_edit_credential_full(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbCredsApp(load_mock_config, engine)
     add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
     edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
 
@@ -72,9 +70,9 @@ async def test_edit_credential_full(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [
+        assert get_credentials(engine) == [
             Credential(
-                id="1",
+                id=1,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 hash=HASH_TEST_VALUE,
@@ -97,9 +95,9 @@ async def test_edit_credential_full(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [
+        assert get_credentials(engine) == [
             Credential(
-                id="1",
+                id=1,
                 username=USERNAME_TEST_VALUE + "2",
                 password=PASSWORD_TEST_VALUE + "2",
                 hash=HASH_TEST_VALUE + "2",
@@ -110,24 +108,22 @@ async def test_edit_credential_full(
 
 @pytest.mark.asyncio
 async def test_edit_credential_not_exist(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any]
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
+    app = DbCredsApp(load_mock_config, engine)
     edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(edit_credential_keybind)
 
-    assert len(get_credentials(kp)) == 0
+    assert len(get_credentials(engine)) == 0
 
 
 @pytest.mark.asyncio
 async def test_edit_credential_issue_3(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any]
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
+    app = DbCredsApp(load_mock_config, engine)
     add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
     edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
 
@@ -138,7 +134,9 @@ async def test_edit_credential_issue_3(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [Credential(id="1", username=USERNAME_TEST_VALUE)]
+        assert get_credentials(engine) == [
+            Credential(id=1, username=USERNAME_TEST_VALUE)
+        ]
 
         await pilot.press(edit_credential_keybind)
         await pilot.press(edit_credential_keybind)
@@ -147,6 +145,6 @@ async def test_edit_credential_issue_3(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [
-            Credential(id="1", username=USERNAME_TEST_VALUE + "2")
+        assert get_credentials(engine) == [
+            Credential(id=1, username=USERNAME_TEST_VALUE + "2")
         ]

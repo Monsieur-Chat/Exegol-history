@@ -1,7 +1,5 @@
 import sys
-from pathlib import Path
 
-from pykeepass import PyKeePass
 from rich.console import Console
 from rich.traceback import install
 
@@ -30,6 +28,9 @@ from exegol_history.cli.functions import (
 )
 from exegol_history.config.config import AppConfig
 
+from sqlalchemy import exc
+
+
 console = Console(soft_wrap=True)
 
 
@@ -39,7 +40,6 @@ def main():
     need_config = False
     need_kp = False
     config = None
-    kp = None
 
     args = parse_arguments().parse_args()
 
@@ -69,35 +69,35 @@ def main():
         AppConfig.setup_profile(config["paths"]["profile_sh_path"])
 
         if need_kp:
-            if not Path(db_path).is_file():
-                Path(db_path).touch(exist_ok=True)
-                AppConfig.setup_db(db_path, db_key_path)
-            kp = PyKeePass(db_path, keyfile=db_key_path)
+            engine = AppConfig.setup_db(db_path, db_key_path)
 
             # Synchronise all connectors
-            if args.command != SYNC_SUBCOMMAND:
-                sync_objects(kp, config)
+            # if args.command != SYNC_SUBCOMMAND:
+            # sync_objects(kp, config)
 
     try:
         # CLI
         if args.command == VERSION_SUBCOMMAND:
             show_version(console)
         elif args.command == ADD_SUBCOMMAND:
-            add_object(args, kp, config)
+            try:
+                add_object(args, engine, config)
+            except exc.IntegrityError:
+                console.print("[-] The credential already exist !")
         elif args.command == IMPORT_SUBCOMMAND:
-            cli_import_objects(args, kp)
+            cli_import_objects(args, engine)
         elif args.command == EDIT_SUBCOMMAND:
-            edit_object(args, kp, console)
+            edit_object(args, engine, console)
         elif args.command == EXPORT_SUBCOMMAND:
-            cli_export_objects(args, kp, console)
+            cli_export_objects(args, engine, console)
         elif args.command == DELETE_SUBCOMMAND:
-            delete_objects(args, kp, console)
+            delete_objects(args, engine, console)
         elif args.command == SYNC_SUBCOMMAND:
-            sync_objects(kp, config)
+            sync_objects(engine, config)
 
         # TUI
         elif args.command == SET_SUBCOMMAND:
-            set_objects(args, kp, config, console)
+            set_objects(args, engine, config, console)
         elif args.command == UNSET_SUBCOMMAND:
             unset_objects(args, config)
         elif args.command == SHOW_SUBCOMMAND:

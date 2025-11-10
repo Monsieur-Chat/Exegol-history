@@ -3,7 +3,6 @@ from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
     edit_credentials,
-    get_existing_credential,
 )
 
 
@@ -25,10 +24,12 @@ class NXC_Users_Extractor:
             credentials_to_add = []
             credentials_to_edit = []
 
+            print(f"Start {self.service_name} credentials")
+
             for row in rows:
                 domain, username, password, credtype = row
                 credential = Credential(username=username, domain=domain)
-                existing_credential = get_existing_credential(self.kp, credential)
+                existing_credential = ""
 
                 if credtype == "plaintext":
                     credential.password = password

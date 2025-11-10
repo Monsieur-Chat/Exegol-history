@@ -15,7 +15,7 @@ from exegol_history.db_api.exporting import export_objects
 from exegol_history.db_api.hosts import (
     Host,
     add_hosts,
-    delete_host,
+    delete_hosts,
     edit_hosts,
     get_hosts,
 )
@@ -131,6 +131,7 @@ class DbHostsApp(App):
         tmp = get_hosts(self.kp)
 
         _tmp = Host()
+        delattr(_tmp, "_sa_instance_state")
 
         table = self.screen.query_one(ObjectsDataTable)
         table.add_columns(*_tmp.__dict__.keys())
@@ -249,11 +250,10 @@ class DbHostsApp(App):
         def check_delete(result: list[int]) -> None:
             for id in result:
                 try:
-                    delete_host(self.kp, id)
+                    delete_hosts(self.kp, [id])
                 except RuntimeError:
                     pass
 
-            self.kp.save()
             self.update_table()
 
         table = self.screen.query_one(ObjectsDataTable)

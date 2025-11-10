@@ -1,5 +1,5 @@
+from sqlalchemy import Engine
 from textual.keys import Keys
-from pykeepass import PyKeePass
 from typing import Any
 import pytest
 import subprocess
@@ -28,10 +28,9 @@ from exegol_history.tui.widgets.host_form import (
 
 @pytest.mark.asyncio
 async def test_set_host_without_selecting(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any]
 ):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+    app = DbHostsApp(load_mock_config, engine)
 
     async with app.run_test() as pilot:
         with pytest.raises(TypeError):
@@ -41,11 +40,8 @@ async def test_set_host_without_selecting(
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_only_ip_linux(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_set_host_only_ip_linux(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -83,11 +79,8 @@ async def test_set_host_only_ip_linux(
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_half_linux(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_set_host_half_linux(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -129,11 +122,8 @@ async def test_set_host_half_linux(
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_full_linux(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_set_host_full_linux(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -180,11 +170,8 @@ async def test_set_host_full_linux(
 # the DC_HOST and DC_IP variable shouldn't change
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_dc_linux(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_set_host_dc_linux(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -213,7 +200,7 @@ async def test_set_host_dc_linux(
     assert HOSTNAME_TEST_VALUE in envs
 
     app = DbHostsApp(
-        load_mock_config, kp
+        load_mock_config, engine
     )  # Initialize a new app so we can use the Textualize pilot again
 
     async with app.run_test() as pilot:
@@ -246,10 +233,9 @@ async def test_set_host_dc_linux(
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
 async def test_set_host_only_ip_windows(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any]
 ):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -287,11 +273,8 @@ async def test_set_host_only_ip_windows(
 
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_host_half_windows(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_set_host_half_windows(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -333,11 +316,8 @@ async def test_set_host_half_windows(
 
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_host_full_windows(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_set_host_full_windows(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -384,11 +364,8 @@ async def test_set_host_full_windows(
 # the DC_HOST and DC_IP variable shouldn't change
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_host_dc_windows(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_set_host_dc_windows(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test() as pilot:
@@ -417,7 +394,7 @@ async def test_set_host_dc_windows(
     assert HOSTNAME_TEST_VALUE in envs
 
     app = DbHostsApp(
-        load_mock_config, kp
+        load_mock_config, engine
     )  # Initialize a new app so we can use the Textualize pilot again
 
     async with app.run_test() as pilot:

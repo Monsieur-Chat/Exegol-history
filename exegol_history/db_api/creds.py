@@ -1,59 +1,35 @@
-from pykeepass import PyKeePass, Entry
-
+from sqlalchemy.orm import Mapped, mapped_column, Session
+from sqlalchemy import select, UniqueConstraint, Engine
+from exegol_history.db_api.base import Base
 from exegol_history.db_api.utils import MESSAGE_ID_NOT_EXIST
 
 
-class Credential:
-    GROUP_NAME = "Credentials"
-    EXEGOL_DB_HASH_PROPERTY = "hash"
-    EXEGOL_DB_DOMAIN_PROPERTY = "domain"
+class Credential(Base):
+    __tablename__ = "credentials"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column()
+    password: Mapped[str] = mapped_column(nullable=True)
+    hash: Mapped[str] = mapped_column(nullable=True)
+    domain: Mapped[str] = mapped_column(nullable=True)
+
+    __table_args__ = (UniqueConstraint("username", "domain"),)
+
     REDACT_SEPARATOR = "*"
     HEADERS = ["username", "password", "hash", "domain"]
 
     def __init__(
         self,
-        id: str = "",
-        username: str = "",
-        password: str = "",
-        hash: str = "",
-        domain: str = "",
+        id: int = None,
+        username: str = None,
+        password: str = None,
+        hash: str = None,
+        domain: str = None,
     ):
         self.id = id
         self.username = username
         self.password = password
         self.hash = hash
         self.domain = domain
-        # By adding attributes, you must algo update Credential.HEADERS to support import / export CSV operations
-
-    def __iter__(self):
-        return iter([self.id, self.username, self.password, self.hash, self.domain])
-
-    # Convert a Keepass entry into a Credential object
-    @staticmethod
-    def credential_from_entry(entry, redacted: bool = False):
-        if redacted:
-            password = Credential.REDACT_SEPARATOR * 8
-        elif entry.password:
-            password = entry.password
-        else:
-            password = ""
-
-        if redacted:
-            hash = Credential.REDACT_SEPARATOR * 8
-        elif entry.get_custom_property(Credential.EXEGOL_DB_HASH_PROPERTY):
-            hash = entry.get_custom_property(Credential.EXEGOL_DB_HASH_PROPERTY)
-        else:
-            hash = ""
-
-        return Credential(
-            entry.title if entry.title else "",
-            entry.username if entry.username else "",
-            password,
-            hash,
-            entry.get_custom_property(Credential.EXEGOL_DB_DOMAIN_PROPERTY)
-            if entry.get_custom_property(Credential.EXEGOL_DB_DOMAIN_PROPERTY)
-            else "",
-        )
 
     def __eq__(self, value):
         return (
@@ -64,90 +40,73 @@ class Credential:
             and (self.domain == value.domain)
         )
 
+    def __repr__(self) -> str:
+        return f"Credential(id={self.id}, username={self.username}, password={self.password}, hash={self.hash}, domain={self.domain})"
 
-def get_existing_credential(kp: PyKeePass, credential: Credential) -> Entry:
-    return kp.find_entries(
-        username=credential.username,
-        string={Credential.EXEGOL_DB_DOMAIN_PROPERTY: credential.domain},
-        first=True,
-    )
+    # Reference: https://stackoverflow.com/questions/5022066/how-to-serialize-sqlalchemy-result-to-json
+    def as_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
 
-
-def get_new_credential_id(kp: PyKeePass) -> str:
-    credentials = get_credentials(kp)
-
-    return str(int(credentials[-1].id) + 1) if credentials else "1"
+    def __iter__(self):
+        return iter([self.id, self.username, self.password, self.hash, self.domain])
 
 
-def add_credentials(kp: PyKeePass, credentials: list[Credential]):
-    for credential in credentials:
-        add_credential(kp, credential)
-
-    kp.save()
-
-
-def add_credential(kp: PyKeePass, credential: Credential):
-    credential.id = get_new_credential_id(kp)
-
-    group = kp.find_groups(name=Credential.GROUP_NAME, first=True)
-    entry = kp.add_entry(
-        group, credential.id, credential.username, credential.password or ""
-    )
-    entry.set_custom_property(
-        Credential.EXEGOL_DB_HASH_PROPERTY, credential.hash, protect=True
-    )
-    entry.set_custom_property(
-        Credential.EXEGOL_DB_DOMAIN_PROPERTY, credential.domain, protect=True
-    )
+def add_credentials(engine: Engine, credentials: list[Credential]):
+    with Session(engine, expire_on_commit=False) as session:
+        session.add_all(credentials)
+        session.commit()
 
 
 def get_credentials(
-    kp: PyKeePass, id: str = None, redacted: bool = False
+    engine: Engine, id: str = None, redacted: bool = False
 ) -> list[Credential]:
-    group = kp.find_groups(name=Credential.GROUP_NAME, first=True)
-    entries = kp.find_entries(title=id, recursive=True, group=group)
+    credentials = []
 
-    return [Credential.credential_from_entry(entry, redacted) for entry in entries]
-
-
-def delete_credentials(kp: PyKeePass, ids: list[str] = list()):
-    for id in ids:
-        delete_credential(kp, id)
-
-    kp.save()
-
-
-def delete_credential(kp: PyKeePass, id: str = ""):
-    group = kp.find_groups(name=Credential.GROUP_NAME, first=True)
-    entry = kp.find_entries(title=id, first=True, group=group)
-
-    if entry:
-        kp.delete_entry(entry)
+    if id:
+        query = select(Credential).where(Credential.id == id)
     else:
+        query = select(Credential)
+
+    with Session(engine, expire_on_commit=False) as session:
+        for credential in session.scalars(query):
+            session.expunge(credential)
+            if redacted:
+                credential.password = Credential.REDACT_SEPARATOR * 8
+                credential.hash = Credential.REDACT_SEPARATOR * 8
+
+            credentials.append(credential)
+
+        return credentials
+
+
+def delete_credentials(engine: Engine, ids: list[str] = list()):
+    with Session(engine, expire_on_commit=False) as session:
+        query = Credential.__table__.delete().where(Credential.id.in_(ids))
+        result = session.execute(query)
+
+        session.commit()
+
+    if result.rowcount <= 0:
         raise RuntimeError(MESSAGE_ID_NOT_EXIST)
 
 
-def edit_credentials(kp: PyKeePass, credentials: list[Credential]):
-    for credential in credentials:
-        edit_credential(kp, credential, skip_save=True)
+def edit_credentials(engine: Engine, credentials: list[Credential]):
+    with Session(engine, expire_on_commit=False) as session:
+        for credential in credentials:
+            credential_to_modify = session.get(Credential, credential.id)
 
-    kp.save()
+            if not credential_to_modify:
+                raise RuntimeError(MESSAGE_ID_NOT_EXIST)
 
+            for attr in Credential.__table__.columns.keys():
+                if attr == "id":
+                    continue
 
-def edit_credential(kp: PyKeePass, credential: Credential, skip_save: bool = False):
-    group = kp.find_groups(name=Credential.GROUP_NAME, first=True)
-    entry = kp.find_entries(title=credential.id, first=True, group=group)
+                value = getattr(credential, attr, None)
 
-    if entry:
-        entry.username = credential.username
-        entry.password = credential.password
-        entry.set_custom_property(
-            Credential.EXEGOL_DB_HASH_PROPERTY, credential.hash, protect=True
-        )
-        entry.set_custom_property(
-            Credential.EXEGOL_DB_DOMAIN_PROPERTY, credential.domain, protect=True
-        )
-        if not skip_save:
-            kp.save()
-    else:
-        raise RuntimeError(MESSAGE_ID_NOT_EXIST)
+                if value:
+                    setattr(credential_to_modify, attr, value)
+
+        session.commit()

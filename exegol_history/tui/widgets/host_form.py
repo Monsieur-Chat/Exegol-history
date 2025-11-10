@@ -44,11 +44,16 @@ class HostForm(Container):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == ID_CONFIRM_BUTTON:
+            ip = self.screen.query_one(f"#{ID_IP_INPUT}", BorderedInput).value
+            hostname = self.screen.query_one(
+                f"#{ID_HOSTNAME_INPUT}", BorderedInput
+            ).value
+            role = self.screen.query_one(f"#{ID_ROLE_INPUT}", BorderedInput).value
             self.host = Host(
-                self.host.id if self.host else "",
-                self.screen.query_one(f"#{ID_IP_INPUT}", BorderedInput).value,
-                self.screen.query_one(f"#{ID_HOSTNAME_INPUT}", BorderedInput).value,
-                self.screen.query_one(f"#{ID_ROLE_INPUT}", BorderedInput).value,
+                self.host.id if self.host else None,
+                ip=ip if ip else None,
+                hostname=hostname if hostname else None,
+                role=role if role else None,
             )
 
             self.screen.dismiss([self.host])

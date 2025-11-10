@@ -43,8 +43,8 @@ def import_objects(
 
     for object in objects:
         # Reference: https://stackoverflow.com/questions/2544710/how-i-can-get-rid-of-none-values-in-dictionary, answer by John La Rooy
-        # Remove 'None' value
-        object = {k: v for k, v in object.items() if v is not None}
+        # Remove empty string value
+        object = {k: v for k, v in object.items() if v != ""}
 
         try:
             object_to_add = (
@@ -52,7 +52,8 @@ def import_objects(
                 if type(file_type) is CredsImportFileType
                 else Host(**object)
             )
-        except TypeError:
+        except TypeError as e:
+            print(e)
             raise TypeError(
                 "Error while importing, is the file in the correct format ?"
             )
@@ -83,11 +84,14 @@ def import_creds_pypykatz_json(file_raw: bytes) -> dict[Any]:
                 dict_key = f"{username}\\{domain}"
 
                 if dict_key not in parsed_credentials:
-                    parsed_credentials[dict_key] = Credential(
-                        username=username, hash=nt_hash, domain=domain
-                    )
+                    parsed_credentials[dict_key] = {
+                        "username": username,
+                        "password": None,
+                        "hash": nt_hash,
+                        "domain": domain,
+                    }
                 else:
-                    parsed_credentials[dict_key].hash = nt_hash if nt_hash else ""
+                    parsed_credentials[dict_key]["hash"] = nt_hash if nt_hash else ""
 
         if sessions.get("wdigest_creds"):
             for wdigest_credential in sessions.get("wdigest_creds"):
@@ -97,13 +101,18 @@ def import_creds_pypykatz_json(file_raw: bytes) -> dict[Any]:
                 dict_key = f"{username}\\{domain}"
 
                 if dict_key not in parsed_credentials:
-                    parsed_credentials[dict_key] = Credential(
-                        username=username, password=password, domain=domain
-                    )
+                    parsed_credentials[dict_key] = {
+                        "username": username,
+                        "password": password,
+                        "hash": None,
+                        "domain": domain,
+                    }
                 else:
-                    parsed_credentials[dict_key].password = password if password else ""
+                    parsed_credentials[dict_key]["password"] = (
+                        password if password else ""
+                    )
 
-    return [credential.__dict__ for _key, credential in parsed_credentials.items()]
+    return [credential for _, credential in parsed_credentials.items()]
 
 
 def import_creds_secretsdump(file_raw: bytes) -> list[Credential]:
@@ -115,7 +124,10 @@ def import_creds_secretsdump(file_raw: bytes) -> list[Credential]:
 
     for row in credentials:
         credential = Credential(username=row[0], hash=row[3])
-        parsed_credentials.append(credential.__dict__)
+        dict = credential.__dict__
+        dict.pop("_sa_instance_state", None)
+
+        parsed_credentials.append(dict)
 
     return parsed_credentials
 
@@ -128,6 +140,9 @@ def import_creds_kdbx(
 
     for entry in kp.entries:
         credential = Credential(username=entry.username, password=entry.password)
-        parsed_credentials.append(credential.__dict__)
+        dict = credential.__dict__
+        dict.pop("_sa_instance_state", None)
+
+        parsed_credentials.append(dict)
 
     return parsed_credentials

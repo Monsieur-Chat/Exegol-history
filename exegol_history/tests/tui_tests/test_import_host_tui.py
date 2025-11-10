@@ -1,10 +1,10 @@
+from sqlalchemy import Engine
 from textual.keys import Keys
 import pytest
 from exegol_history.db_api.importing import HostsImportFileType
 from exegol_history.tui.db_hosts import DbHostsApp
 from exegol_history.db_api.hosts import Host, get_hosts
 from common import (
-    HOSTS_TEST_VALUE,
     IP_TEST_VALUE,
     HOSTNAME_TEST_VALUE,
     ROLE_TEST_VALUE,
@@ -12,7 +12,6 @@ from common import (
     select_input_and_enter_text,
     select_select_index,
 )
-from pykeepass import PyKeePass
 from typing import Any
 from exegol_history.tui.widgets.credential_form import ID_CONFIRM_BUTTON
 from exegol_history.tui.widgets.import_file import (
@@ -25,11 +24,8 @@ from exegol_history.tui.screens.open_file import ID_PATH_INPUT
 
 
 @pytest.mark.asyncio
-async def test_import_host_csv(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_import_host_csv(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test(size=(400, 400)) as pilot:
@@ -50,19 +46,16 @@ async def test_import_host_csv(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-    assert get_hosts(kp) == [
-        Host(
-            id="1", ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE
-        )
+    assert get_hosts(engine) == [
+        Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
     ]
 
 
 @pytest.mark.asyncio
 async def test_import_host_csv_file(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
 ):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
 
     async with app.run_test(size=(400, 400)) as pilot:
@@ -85,4 +78,4 @@ async def test_import_host_csv_file(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-    assert get_hosts(kp) == HOSTS_TEST_VALUE
+    assert get_hosts(engine) == HOSTS_TEST_VALUE

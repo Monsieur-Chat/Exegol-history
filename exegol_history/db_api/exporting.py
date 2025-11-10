@@ -45,7 +45,7 @@ def export_objects_json(objects: list[Any]):
     results = list()
 
     for object in objects:
-        dict = object.__dict__
+        dict = object.as_dict()
         dict.pop(PROPERTY_NAME_ID, None)
         results.append(dict)
 
@@ -58,16 +58,15 @@ def export_objects_csv(
     obj_type: Type[Union[Credential, Host]],
 ):
     csv_string = io.StringIO()
-    csv_writer = csv.DictWriter(
+    csv_writer = csv.writer(
         csv_string,
-        fieldnames=obj_type.HEADERS,
         delimiter=delimiter if delimiter else ",",
     )
-    csv_writer.writeheader()
+    csv_writer.writerow([column.name for column in obj_type.__mapper__.columns][1:])
 
     for o in objects:
-        obj_dict = o.__dict__
-        obj_dict.pop(PROPERTY_NAME_ID, None)
-        csv_writer.writerow(obj_dict)
+        csv_writer.writerow(
+            [getattr(o, column.name) for column in obj_type.__mapper__.columns][1:]
+        )
 
     return csv_string.getvalue()

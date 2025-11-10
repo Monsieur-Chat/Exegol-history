@@ -13,7 +13,7 @@ from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
-    delete_credential,
+    delete_credentials,
     edit_credentials,
     get_credentials,
 )
@@ -121,6 +121,7 @@ class DbCredsApp(App):
         tmp = get_credentials(self.kp)
 
         _tmp = Credential()
+        delattr(_tmp, "_sa_instance_state")
 
         table = self.screen.query_one(ObjectsDataTable)
         table.add_columns(*_tmp.__dict__.keys())
@@ -179,6 +180,7 @@ class DbCredsApp(App):
                 selected_row = table.cursor_row
                 row_data = table.get_row_at(selected_row)
                 select_credential = get_credentials(self.kp, id=row_data[0])[0]
+
                 self.exit(select_credential)
             except Exception:
                 pass
@@ -284,11 +286,10 @@ class DbCredsApp(App):
         def check_delete(result: list[int]) -> None:
             for id in result:
                 try:
-                    delete_credential(self.kp, id)
+                    delete_credentials(self.kp, [id])
                 except RuntimeError:
                     continue
 
-            self.kp.save()
             self.update_table()
 
         table = self.screen.query_one(ObjectsDataTable)

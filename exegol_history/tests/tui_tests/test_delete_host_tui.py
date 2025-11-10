@@ -1,14 +1,13 @@
 import pytest
+from sqlalchemy import Engine
 from exegol_history.tui.db_hosts import DbHostsApp
-from exegol_history.db_api.hosts import Host, add_host, add_hosts, get_hosts
+from exegol_history.db_api.hosts import Host, add_hosts, get_hosts
 from common import (
-    HOSTS_TEST_VALUE,
     IP_TEST_VALUE,
     HOSTNAME_TEST_VALUE,
     ROLE_TEST_VALUE,
     select_input_and_enter_text,
 )
-from pykeepass import PyKeePass
 from typing import Any
 
 from exegol_history.tui.widgets.credential_form import ID_CONFIRM_BUTTON
@@ -25,9 +24,8 @@ from textual.keys import Keys
 
 
 @pytest.mark.asyncio
-async def test_delete_host(open_keepass: PyKeePass, load_mock_config: dict[str, Any]):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_delete_host(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
@@ -36,20 +34,17 @@ async def test_delete_host(open_keepass: PyKeePass, load_mock_config: dict[str, 
         await select_input_and_enter_text(pilot, f"#{ID_IP_INPUT}", IP_TEST_VALUE)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(kp) == [Host(id="1", ip=IP_TEST_VALUE)]
+        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE)]
 
         await pilot.press(delete_host_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert len(get_hosts(kp)) == 0
+        assert len(get_hosts(engine)) == 0
 
 
 @pytest.mark.asyncio
-async def test_delete_host_full(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_delete_host_full(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     add_host_keybind = load_mock_config["keybindings"]["add_host"]
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
@@ -62,9 +57,9 @@ async def test_delete_host_full(
         await select_input_and_enter_text(pilot, f"#{ID_ROLE_INPUT}", ROLE_TEST_VALUE)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(kp) == [
+        assert get_hosts(engine) == [
             Host(
-                id="1",
+                id=1,
                 ip=IP_TEST_VALUE,
                 hostname=HOSTNAME_TEST_VALUE,
                 role=ROLE_TEST_VALUE,
@@ -74,19 +69,18 @@ async def test_delete_host_full(
         await pilot.press(delete_host_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert len(get_hosts(kp)) == 0
+        assert len(get_hosts(engine)) == 0
 
 
 @pytest.mark.asyncio
 async def test_delete_host_range(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
 ):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+    app = DbHostsApp(load_mock_config, engine)
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
-    add_hosts(kp, HOSTS_TEST_VALUE)
-    assert get_hosts(kp) == HOSTS_TEST_VALUE
+    add_hosts(engine, HOSTS_TEST_VALUE)
+    assert get_hosts(engine) == HOSTS_TEST_VALUE
 
     async with app.run_test() as pilot:
         await pilot.press(delete_host_keybind)
@@ -98,19 +92,18 @@ async def test_delete_host_range(
         )
         await pilot.click(f"#{ID_CONFIRM_RANGE_BUTTON}")
 
-        assert get_hosts(kp) == HOSTS_TEST_VALUE[2:3]
+        assert get_hosts(engine) == HOSTS_TEST_VALUE[2:3]
 
 
 @pytest.mark.asyncio
 async def test_delete_host_range_with_invalid_id(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
 ):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+    app = DbHostsApp(load_mock_config, engine)
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
-    add_hosts(kp, HOSTS_TEST_VALUE)
-    assert get_hosts(kp) == HOSTS_TEST_VALUE
+    add_hosts(engine, HOSTS_TEST_VALUE)
+    assert get_hosts(engine) == HOSTS_TEST_VALUE
 
     async with app.run_test() as pilot:
         await pilot.press(delete_host_keybind)
@@ -122,16 +115,13 @@ async def test_delete_host_range_with_invalid_id(
         )
         await pilot.click(f"#{ID_CONFIRM_RANGE_BUTTON}")
 
-        assert get_hosts(kp) == HOSTS_TEST_VALUE[2:3]
+        assert get_hosts(engine) == HOSTS_TEST_VALUE[2:3]
 
 
 # Trying to delete an object when no object are present should not raise an exception
 @pytest.mark.asyncio
-async def test_delete_host_empty(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_delete_host_empty(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
     async with app.run_test() as pilot:
@@ -139,14 +129,11 @@ async def test_delete_host_empty(
 
 
 @pytest.mark.asyncio
-async def test_delete_host_issue_3(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
+async def test_delete_host_issue_3(engine: Engine, load_mock_config: dict[str, Any]):
+    app = DbHostsApp(load_mock_config, engine)
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
-    add_host(kp, Host())
+    add_hosts(engine, [Host(ip=IP_TEST_VALUE)])
 
     async with app.run_test() as pilot:
         await pilot.press(delete_host_keybind)

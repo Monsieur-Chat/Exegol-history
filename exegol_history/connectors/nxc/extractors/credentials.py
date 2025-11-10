@@ -1,10 +1,18 @@
+from enum import Enum
 import sqlite3
 from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
     edit_credentials,
-    get_existing_credential,
 )
+from sqlalchemy import exc, select
+from sqlalchemy.orm import Session
+
+
+class NXCCredType(Enum):
+    HASH = "hash"
+    PASSWORD = "plaintext"
+    KEY = "key"
 
 
 class NXC_Credentials_Extractor:
@@ -18,30 +26,34 @@ class NXC_Credentials_Extractor:
             conn = sqlite3.connect(self.db_file_path)
             cursor = conn.cursor()
 
-            query = "SELECT username, password FROM credentials"
+            query = "SELECT username, password, domain, credtype FROM users"
             cursor.execute(query)
             rows = cursor.fetchall()
-            counter = 0
-            credentials_to_add = []
-            credentials_to_edit = []
 
             for row in rows:
-                username, password = row
-                credential = Credential(username=username, password=password, domain="")
-                existing_credential = get_existing_credential(self.kp, credential)
+                username, password, domain, credtype = row
 
-                if not existing_credential:
-                    credentials_to_add.append(credential)
-                    counter = counter + 1
+                credential = Credential(username=username, domain=domain)
+
+                if credtype == NXCCredType.HASH:
+                    credential.hash = password
                 else:
-                    counter = counter + 1
-                    credential.id = existing_credential.title
-                    credentials_to_edit.append(credential)
+                    credential.password = password
 
-                add_credentials(self.kp, credentials_to_add)
-                edit_credentials(self.kp, credentials_to_edit)
+                try:
+                    add_credentials(self.kp, [credential])
+                    print("Add")
+                except exc.IntegrityError:
+                    with Session(self.kp) as session:
+                        tmp = select(Credential).where(
+                            Credential.username == username
+                            and Credential.domain == domain
+                        )
+                        credential.id = session.scalars(tmp).one().id
+                        edit_credentials(self.kp, [credential])
+                        print("Edit")
 
-            print(f"Synced {counter} {self.service_name} credentials")
+            print(f"Synced {self.service_name} credentials")
 
             conn.close()
         except Exception as e:

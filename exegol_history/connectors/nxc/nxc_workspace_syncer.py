@@ -2,7 +2,6 @@ import os
 from exegol_history.connectors.nxc.extractors.credentials import (
     NXC_Credentials_Extractor,
 )
-from exegol_history.connectors.nxc.extractors.users import NXC_Users_Extractor
 
 
 class NXCWorkspaceSyncer:
@@ -12,12 +11,12 @@ class NXCWorkspaceSyncer:
         self.workspaces_dir = os.path.expanduser(workspaces_dir)
         self.kp = kp
         self.db_files = {
-            "smb.db": NXC_Users_Extractor,
+            "smb.db": NXC_Credentials_Extractor,
             "ftp.db": NXC_Credentials_Extractor,
-            "mssql.db": NXC_Users_Extractor,
+            "mssql.db": NXC_Credentials_Extractor,
             "ssh.db": NXC_Credentials_Extractor,
-            "winrm.db": NXC_Users_Extractor,
-            "ldap.db": NXC_Users_Extractor,
+            "winrm.db": NXC_Credentials_Extractor,
+            "ldap.db": NXC_Credentials_Extractor,
             "rdp.db": NXC_Credentials_Extractor,
             "nfs.db": NXC_Credentials_Extractor,
             "vnc.db": NXC_Credentials_Extractor,

@@ -1,4 +1,4 @@
-from pykeepass import PyKeePass
+from sqlalchemy import Engine
 from exegol_history.cli.arguments import parse_arguments
 from exegol_history.cli.functions import ADD_SUBCOMMAND, CREDS_SUBCOMMAND, add_object
 from exegol_history.db_api.creds import Credential, get_credentials
@@ -10,43 +10,37 @@ from exegol_history.tests.common import (
 )
 
 
-def test_add_credential_only_username(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_add_credential_only_username(engine: Engine):
     command_line = (
         f"{ADD_SUBCOMMAND} {CREDS_SUBCOMMAND} -u {USERNAME_TEST_VALUE}".split()
     )
     args = parse_arguments().parse_args(command_line)
 
-    add_object(args, kp, {})
+    add_object(args, engine, {})
 
-    assert get_credentials(kp) == [Credential(id="1", username=USERNAME_TEST_VALUE)]
+    assert get_credentials(engine) == [Credential(id=1, username=USERNAME_TEST_VALUE)]
 
 
-def test_add_credential_half(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_add_credential_half(engine: Engine):
     command_line = f"{ADD_SUBCOMMAND} {CREDS_SUBCOMMAND} -u {USERNAME_TEST_VALUE} -p {PASSWORD_TEST_VALUE}".split()
     args = parse_arguments().parse_args(command_line)
 
-    add_object(args, kp, {})
+    add_object(args, engine, {})
 
-    assert get_credentials(kp) == [
-        Credential(id="1", username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
+    assert get_credentials(engine) == [
+        Credential(id=1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
     ]
 
 
-def test_add_credential_full(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_add_credential_full(engine: Engine):
     command_line = f"{ADD_SUBCOMMAND} {CREDS_SUBCOMMAND} -u {USERNAME_TEST_VALUE} -p {PASSWORD_TEST_VALUE} -H {HASH_TEST_VALUE} -d {DOMAIN_TEST_VALUE}".split()
     args = parse_arguments().parse_args(command_line)
 
-    add_object(args, kp, {})
+    add_object(args, engine, {})
 
-    assert get_credentials(kp) == [
+    assert get_credentials(engine) == [
         Credential(
-            id="1",
+            id=1,
             username=USERNAME_TEST_VALUE,
             password=PASSWORD_TEST_VALUE,
             hash=HASH_TEST_VALUE,

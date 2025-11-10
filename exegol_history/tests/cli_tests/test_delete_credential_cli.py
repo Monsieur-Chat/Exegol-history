@@ -1,6 +1,6 @@
 import io
-from pykeepass import PyKeePass
 from rich.console import Console
+from sqlalchemy import Engine
 from exegol_history.cli.arguments import parse_arguments
 from exegol_history.cli.functions import (
     CREDS_SUBCOMMAND,
@@ -19,27 +19,23 @@ from exegol_history.tests.common import (
 )
 
 
-def test_delete_credential(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_delete_credential(engine: Engine):
     credential1 = Credential(
         username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     )
     credential2 = Credential(username=USERNAME_TEST_VALUE)
     credential3 = Credential(username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
-    add_credentials(kp, [credential1, credential2, credential3])
+    add_credentials(engine, [credential1, credential2, credential3])
 
     command_line = f"{DELETE_SUBCOMMAND} {CREDS_SUBCOMMAND} -i 2".split()
     args = parse_arguments().parse_args(command_line)
 
-    delete_objects(args, kp, {})
+    delete_objects(args, engine, {})
 
-    assert get_credentials(kp) == [credential1, credential3]
+    assert get_credentials(engine) == [credential1, credential3]
 
 
-def test_delete_credential_range(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_delete_credential_range(engine: Engine):
     credential1 = Credential(
         username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     )
@@ -53,29 +49,28 @@ def test_delete_credential_range(open_keepass: PyKeePass):
     )
 
     add_credentials(
-        kp, [credential1, credential2, credential3, credential4, credential5]
+        engine, [credential1, credential2, credential3, credential4, credential5]
     )
 
     command_line = f"{DELETE_SUBCOMMAND} {CREDS_SUBCOMMAND} -i 1-3,5".split()
     args = parse_arguments().parse_args(command_line)
 
-    delete_objects(args, kp, {})
+    delete_objects(args, engine, {})
 
-    assert get_credentials(kp) == [credential4]
+    assert get_credentials(engine) == [credential4]
 
 
 def test_delete_credential_bad_range():
     assert len(parse_ids("BAD,BAD")) == 0
 
 
-def test_delete_credential_not_exist(open_keepass: PyKeePass):
-    kp = open_keepass
+def test_delete_credential_not_exist(engine: Engine):
     console = Console(file=io.StringIO())
 
     command_line = f"{DELETE_SUBCOMMAND} {CREDS_SUBCOMMAND} -i 999".split()
     args = parse_arguments().parse_args(command_line)
 
-    delete_objects(args, kp, console)
+    delete_objects(args, engine, console)
 
     assert MESSAGE_ID_NOT_EXIST in console.file.getvalue().replace("\n", "")
-    assert len(get_credentials(kp)) == 0
+    assert len(get_credentials(engine)) == 0

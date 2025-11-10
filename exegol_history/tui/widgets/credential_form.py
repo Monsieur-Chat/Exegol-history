@@ -59,18 +59,20 @@ class CredentialForm(Container):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == ID_CONFIRM_BUTTON:
+            username = self.screen.query_one(
+                f"#{ID_USERNAME_INPUT}", BorderedInput
+            ).value
+            password = self.screen.query_one(
+                f"#{ID_PASSWORD_INPUT}", BorderedInput
+            ).value
+            hash = self.screen.query_one(f"#{ID_HASH_INPUT}", BorderedInput).value
+            domain = self.screen.query_one(f"#{ID_DOMAIN_INPUT}", BorderedInput).value
             self.credential = Credential(
-                id=self.credential.id if self.credential else "",
-                username=self.screen.query_one(
-                    f"#{ID_USERNAME_INPUT}", BorderedInput
-                ).value,
-                password=self.screen.query_one(
-                    f"#{ID_PASSWORD_INPUT}", BorderedInput
-                ).value,
-                hash=self.screen.query_one(f"#{ID_HASH_INPUT}", BorderedInput).value,
-                domain=self.screen.query_one(
-                    f"#{ID_DOMAIN_INPUT}", BorderedInput
-                ).value,
+                id=self.credential.id if self.credential else None,
+                username=username if username else None,
+                password=password if password else None,
+                hash=hash if hash else None,
+                domain=domain if domain else None,
             )
 
             self.screen.dismiss([self.credential])

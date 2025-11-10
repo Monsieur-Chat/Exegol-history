@@ -2,12 +2,24 @@ import pathlib
 import shutil
 import pytest
 import platform
-from pykeepass import PyKeePass
 from typing import Any
 from pathlib import Path
-from exegol_history.config.config import AppConfig
 
-TEST_DB_NAME = "test.kdbx"
+from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
+from exegol_history.db_api.creds import Credential
+from exegol_history.db_api.hosts import Host
+from exegol_history.tests.common import (
+    DOMAIN_TEST_VALUE,
+    HASH_TEST_VALUE,
+    HOSTNAME_TEST_VALUE,
+    IP_TEST_VALUE,
+    PASSWORD_TEST_VALUE,
+    ROLE_TEST_VALUE,
+    USERNAME_TEST_VALUE,
+)
+
+TEST_DB_NAME = "test.sqlite3"
 TEST_KEY_NAME = "test.key"
 
 TEST_ARTIFACTS_PATH = Path("exegol_history") / "tests" / "artifacts"
@@ -19,12 +31,9 @@ TEST_PROFILE_PS1 = TEST_ARTIFACTS_PATH / "profile.ps1"
 
 
 @pytest.fixture
-def open_keepass() -> PyKeePass:
-    # First create a test Keepass DB and key
-    AppConfig.setup_db(TEST_DB_PATH, TEST_KEY_PATH)
-
-    # Then open it and return the Pykeepass object
-    return PyKeePass(TEST_DB_PATH, keyfile=TEST_KEY_PATH)
+def engine() -> Engine:
+    # First create a test DB and key
+    return AppConfig.setup_db(TEST_DB_PATH, TEST_KEY_PATH)
 
 
 @pytest.fixture
@@ -50,3 +59,66 @@ def clean():
     pathlib.Path.unlink(TEST_KEY_PATH, missing_ok=True)
     shutil.copy(default_profile_path_unix, TEST_PROFILE_SH)
     shutil.copy(default_profile_path_windows, TEST_PROFILE_PS1)
+
+
+@pytest.fixture(scope="function")
+def TEST_CREDENTIAL2() -> list[Credential]:
+    return [
+        Credential(username=USERNAME_TEST_VALUE, hash=HASH_TEST_VALUE),
+        Credential(
+            username=USERNAME_TEST_VALUE + "2",
+            password=PASSWORD_TEST_VALUE,
+            hash=HASH_TEST_VALUE,
+            domain=DOMAIN_TEST_VALUE,
+        ),
+    ]
+
+
+@pytest.fixture(scope="function")
+def CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP() -> list[Credential]:
+    return [
+        Credential(
+            id=1, username="Administrator", hash="2d6144ce972270349b4be753b4f7368e"
+        ),
+        Credential(id=2, username="Guest", hash="31d6cfe0d16ae931b73c59d7e0c089c0"),
+        Credential(id=3, username="krbtgt", hash="d64dc530aa7cd2883f8c705b6e968e00"),
+        Credential(id=4, username="localuser", hash="8846f7eaee8fb117ad06bdd830b7586c"),
+        Credential(id=5, username="alice", hash="8d97808fb46e01433322bd704ec9e160"),
+        Credential(id=6, username="bob", hash="d8d34b3cff03786fbe1d80b2c8c09d9e"),
+        Credential(id=7, username="carol", hash="0deff2a0603d8c08dbc5cf5bb17965a7"),
+        Credential(id=8, username="dave", hash="f7eb9c06fafaa23c4bcf22ba6781c1e2"),
+        Credential(id=9, username="eve", hash="b963c57010f218edc2cc3c229b5e4d0f"),
+        Credential(id=10, username="franck", hash="c4d15867c66cc7c09bbef86c2166e0d7"),
+        Credential(
+            id=11, username="sccm-client-push", hash="72f5cfa80f07819ccbcfb72feb9eb9b7"
+        ),
+        Credential(
+            id=12, username="sccm-account-da", hash="a36708091f53bd872528841b744b4a82"
+        ),
+        Credential(id=13, username="sccm-naa", hash="c22b315c040ae6e0efee3518d830362b"),
+        Credential(id=14, username="sccm-sql", hash="3fbc46823c86acd0b25f24e164e9397c"),
+        Credential(id=15, username="DC$", hash="0b65cc18dde1c5548f06b8db074a76b3"),
+        Credential(id=16, username="MECM$", hash="252633c7d64b63b0578d11fb79bedfa5"),
+        Credential(id=17, username="MSSQL$", hash="16727c64fb06edb9ead3c06ab9a8b25b"),
+        Credential(id=18, username="CLIENT$", hash="4f242e2b3279eeb5cdb7a19fdab2f038"),
+    ]
+
+
+@pytest.fixture(scope="function")
+def TEST_HOST2() -> list[Host]:
+    return [
+        Host(ip=IP_TEST_VALUE, role=ROLE_TEST_VALUE),
+        Host(
+            ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE
+        ),
+    ]
+
+
+@pytest.fixture(scope="function")
+def HOSTS_TEST_VALUE() -> list[Host]:
+    return [
+        Host(1, IP_TEST_VALUE, HOSTNAME_TEST_VALUE, ROLE_TEST_VALUE),
+        Host(2, IP_TEST_VALUE + "2"),
+        Host(3, IP_TEST_VALUE + "2", HOSTNAME_TEST_VALUE + "2"),
+        Host(4, IP_TEST_VALUE + "3"),
+    ]
