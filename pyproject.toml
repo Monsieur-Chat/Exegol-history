@@ -10,6 +10,7 @@ rich  = "^13.9.2"
 textual = "^3.3.0"
 pykeepass = "4.1.1"
 pyperclip = "1.9.0"
+SQLAlchemy = "2.0.44"
 
 [tool.poetry.scripts]
 exegol-history="exegol_history.__main__:main"
