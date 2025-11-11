@@ -34,8 +34,8 @@ class MetasploitSyncer:
                 with conn.cursor() as cur:
                     try:
                         cur.execute(MSF_DB_CREDENTIAL_QUERY)
-                    except UndefinedTable as e:
-                        return # If the table is not there, it means the Metasploit DB is empty
+                    except UndefinedTable:
+                        return  # If the table is not there, it means the Metasploit DB is empty
 
                     for record in cur:
                         username = record[1]
@@ -62,7 +62,11 @@ class MetasploitSyncer:
                     add_credentials(self.engine, credentials)
 
                     conn.commit()
-        except OperationalError as e:
-            self.console.print(console_error("Could not connect to the Metasploit database !"))
+        except OperationalError:
+            self.console.print(
+                console_error("Could not connect to the Metasploit database !")
+            )
 
-        self.console.print(console_success(f"{len(credentials)} Metasploit credentials synchronized !"))
+        self.console.print(
+            console_success(f"{len(credentials)} Metasploit credentials synchronized !")
+        )

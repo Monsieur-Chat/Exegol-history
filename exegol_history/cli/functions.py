@@ -209,7 +209,9 @@ def sync_objects(
     bypass_auto_flag: bool = False,
 ):
     for connector in config["sync"]:
-        if (config["sync"][connector]["auto"] and config["sync"][connector]["enabled"]) or bypass_auto_flag:
+        if (
+            config["sync"][connector]["auto"] and config["sync"][connector]["enabled"]
+        ) or bypass_auto_flag:
             if connector == "netexec":
                 syncer = NetexecSyncer(engine, console)
                 syncer.sync()

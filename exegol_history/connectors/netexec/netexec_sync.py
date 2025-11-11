@@ -16,7 +16,12 @@ class NetexecCredType(Enum):
 
 
 class NetexecSyncer:
-    def __init__(self, engine: Engine, console: Console, workspaces_dir: str = PATH_NETEXEC_WORKSPACE):
+    def __init__(
+        self,
+        engine: Engine,
+        console: Console,
+        workspaces_dir: str = PATH_NETEXEC_WORKSPACE,
+    ):
         self.workspaces_dir = Path(workspaces_dir).expanduser()
         self.engine = engine
         self.console = console
@@ -40,8 +45,11 @@ class NetexecSyncer:
                 if workspace_path.is_dir():
                     self.process_workspace(workspace_path)
         else:
-            self.console.print(console_error(f"No workspaces directory found at {PATH_NETEXEC_WORKSPACE}"))
-
+            self.console.print(
+                console_error(
+                    f"No workspaces directory found at {PATH_NETEXEC_WORKSPACE}"
+                )
+            )
 
     def process_workspace(self, workspace_path: Path):
         for db_file, query in self.db_files.items():
@@ -51,7 +59,6 @@ class NetexecSyncer:
                 self.extract_and_add_credentials(db_file_path, query)
             else:
                 self.console.print(console_error(f"Missing: {db_file}"))
-
 
     def extract_and_add_credentials(self, db_file_path: str, query: str):
         try:
@@ -69,7 +76,7 @@ class NetexecSyncer:
 
                 if ("domain" in columns) and ("credtype" in columns):
                     username, password, domain, credtype = row
-                elif ("credtype" in columns):
+                elif "credtype" in columns:
                     username, password, credtype = row
                 else:
                     username, password = row
@@ -86,6 +93,12 @@ class NetexecSyncer:
             add_credentials(self.engine, credentials)
             conn.close()
         except Exception as e:
-            self.console.print(console_error(f"Error extracting from {db_file_path}: {e}"))
+            self.console.print(
+                console_error(f"Error extracting from {db_file_path}: {e}")
+            )
 
-        self.console.print(console_success(f"{len(credentials)} Netexec credentials synchronized from {db_file_path} !"))
+        self.console.print(
+            console_success(
+                f"{len(credentials)} Netexec credentials synchronized from {db_file_path} !"
+            )
+        )
