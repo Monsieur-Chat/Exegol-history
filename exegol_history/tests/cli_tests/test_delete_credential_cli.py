@@ -21,10 +21,12 @@ from exegol_history.tests.common import (
 
 def test_delete_credential(engine: Engine):
     credential1 = Credential(
-        username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
+        id=1, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     )
-    credential2 = Credential(username=USERNAME_TEST_VALUE)
-    credential3 = Credential(username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
+    credential2 = Credential(id=2, username=USERNAME_TEST_VALUE)
+    credential3 = Credential(
+        id=3, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
+    )
     add_credentials(engine, [credential1, credential2, credential3])
 
     command_line = f"{DELETE_SUBCOMMAND} {CREDS_SUBCOMMAND} -i 2".split()
@@ -37,15 +39,17 @@ def test_delete_credential(engine: Engine):
 
 def test_delete_credential_range(engine: Engine):
     credential1 = Credential(
-        username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
+        id=1, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     )
-    credential2 = Credential(username=USERNAME_TEST_VALUE)
-    credential3 = Credential(username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
+    credential2 = Credential(id=2, username=USERNAME_TEST_VALUE)
+    credential3 = Credential(
+        id=3, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
+    )
     credential4 = Credential(
-        username=USERNAME_TEST_VALUE + "4", password=PASSWORD_TEST_VALUE
+        id=4, username=USERNAME_TEST_VALUE + "4", password=PASSWORD_TEST_VALUE
     )
     credential5 = Credential(
-        username=USERNAME_TEST_VALUE + "5", password=PASSWORD_TEST_VALUE
+        id=5, username=USERNAME_TEST_VALUE + "5", password=PASSWORD_TEST_VALUE
     )
 
     add_credentials(

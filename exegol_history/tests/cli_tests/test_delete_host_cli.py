@@ -16,9 +16,9 @@ from exegol_history.tests.common import (
 
 
 def test_delete_host(engine: Engine):
-    host1 = Host(ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE + "2")
-    host2 = Host(ip=IP_TEST_VALUE)
-    host3 = Host(ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
+    host1 = Host(id=1, ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE + "2")
+    host2 = Host(id=2, ip=IP_TEST_VALUE)
+    host3 = Host(id=3, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
 
     add_hosts(engine, [host1, host2, host3])
 
@@ -31,11 +31,11 @@ def test_delete_host(engine: Engine):
 
 
 def test_delete_host_range(engine: Engine):
-    host1 = Host(ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE + "2")
-    host2 = Host(ip=IP_TEST_VALUE)
-    host3 = Host(ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
-    host4 = Host(ip=IP_TEST_VALUE + "4", hostname=HOSTNAME_TEST_VALUE)
-    host5 = Host(ip=IP_TEST_VALUE + "5", hostname=HOSTNAME_TEST_VALUE)
+    host1 = Host(id=1, ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE + "2")
+    host2 = Host(id=2, ip=IP_TEST_VALUE)
+    host3 = Host(id=3, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
+    host4 = Host(id=4, ip=IP_TEST_VALUE + "4", hostname=HOSTNAME_TEST_VALUE)
+    host5 = Host(id=5, ip=IP_TEST_VALUE + "5", hostname=HOSTNAME_TEST_VALUE)
 
     add_hosts(engine, [host1, host2, host3, host4, host5])
 

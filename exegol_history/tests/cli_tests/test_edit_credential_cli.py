@@ -18,7 +18,7 @@ from rich.console import Console
 
 
 def test_edit_credential_only_username(engine: Engine):
-    credential = Credential(username=USERNAME_TEST_VALUE)
+    credential = Credential(id=1, username=USERNAME_TEST_VALUE)
 
     add_credentials(engine, [credential])
 
@@ -32,7 +32,9 @@ def test_edit_credential_only_username(engine: Engine):
 
 
 def test_edit_credential_half(engine: Engine):
-    credential = Credential(username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
+    credential = Credential(
+        id=1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
+    )
 
     add_credentials(engine, [credential])
 
@@ -48,6 +50,7 @@ def test_edit_credential_half(engine: Engine):
 
 def test_edit_credential_full(engine: Engine):
     credential = Credential(
+        id=1,
         username=USERNAME_TEST_VALUE,
         password=PASSWORD_TEST_VALUE,
         hash=HASH_TEST_VALUE,

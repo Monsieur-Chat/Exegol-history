@@ -64,8 +64,9 @@ def clean():
 @pytest.fixture(scope="function")
 def TEST_CREDENTIAL2() -> list[Credential]:
     return [
-        Credential(username=USERNAME_TEST_VALUE, hash=HASH_TEST_VALUE),
+        Credential(id=1, username=USERNAME_TEST_VALUE, hash=HASH_TEST_VALUE),
         Credential(
+            id=2,
             username=USERNAME_TEST_VALUE + "2",
             password=PASSWORD_TEST_VALUE,
             hash=HASH_TEST_VALUE,
@@ -107,9 +108,12 @@ def CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP() -> list[Credential]:
 @pytest.fixture(scope="function")
 def TEST_HOST2() -> list[Host]:
     return [
-        Host(ip=IP_TEST_VALUE, role=ROLE_TEST_VALUE),
+        Host(id=1, ip=IP_TEST_VALUE, role=ROLE_TEST_VALUE),
         Host(
-            ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE
+            id=2,
+            ip=IP_TEST_VALUE + "2",
+            hostname=HOSTNAME_TEST_VALUE,
+            role=ROLE_TEST_VALUE,
         ),
     ]
 

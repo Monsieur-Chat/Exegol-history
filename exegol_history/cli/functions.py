@@ -9,7 +9,8 @@ from exegol_history.cli.utils import (
     write_credential_in_profile,
     write_host_in_profile,
 )
-from exegol_history.connectors.nxc.nxc_workspace_syncer import NXCWorkspaceSyncer
+from exegol_history.connectors.metasploit.metasploit_sync import MetasploitSyncer
+from exegol_history.connectors.netexec.netexec_sync import NetexecSyncer
 from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
@@ -68,14 +69,14 @@ def add_object(args: argparse.Namespace, engine: Engine, config: dict[str, Any])
             )
         else:  # If no arguments are given, display the TUI adding screen
             app = DbCredsApp(config, engine, show_add_screen=True)
-            app.run()
+            app.run(inline=config["theme"]["inline"])
     elif args.subcommand == HOSTS_SUBCOMMAND:
         if any([args.ip, args.hostname, args.role]):
             host_to_add = Host(ip=args.ip, hostname=args.hostname, role=args.role)
             add_hosts(engine, [host_to_add])
         else:  # If no arguments are given, display the TUI adding screen
             app = DbHostsApp(config, engine, show_add_screen=True)
-            app.run()
+            app.run(inline=config["theme"]["inline"])
 
 
 def delete_objects(args: argparse.Namespace, engine: Engine, console: Console):
@@ -164,7 +165,7 @@ def set_objects(
     if args.subcommand == CREDS_SUBCOMMAND:
         try:
             app = DbCredsApp(config, engine)
-            row_data = app.run()
+            row_data = app.run(inline=config["theme"]["inline"])
             if row_data is not None:
                 write_credential_in_profile(Credential(*row_data), config)
         except TypeError:  # It means the user left the TUI without choosing anything
@@ -173,7 +174,7 @@ def set_objects(
         app = DbHostsApp(config, engine)
 
         try:
-            row_data = app.run()
+            row_data = app.run(inline=config["theme"]["inline"])
             if row_data is not None:
                 write_host_in_profile(Host(*row_data), config)
         except TypeError:  # It means the user left the TUI without choosing anything
@@ -201,12 +202,20 @@ def show_objects(console: Console):
         console.print("No environment variables are set.")
 
 
-def sync_objects(engine: Engine, config: dict[str, Any]):
+def sync_objects(
+    engine: Engine,
+    config: dict[str, Any],
+    console: Console,
+    bypass_auto_flag: bool = False,
+):
     for connector in config["sync"]:
-        # if config["sync"][connector]["auto"]:
-        if connector == NXCWorkspaceSyncer.SYNCER_NAME:
-            syncer = NXCWorkspaceSyncer(engine)
-            syncer.sync()
+        if (config["sync"][connector]["auto"] and config["sync"][connector]["enabled"]) or bypass_auto_flag:
+            if connector == "netexec":
+                syncer = NetexecSyncer(engine, console)
+                syncer.sync()
+            elif connector == "metasploit":
+                syncer = MetasploitSyncer(engine, console)
+                syncer.sync()
 
 
 def show_version(console: Console):

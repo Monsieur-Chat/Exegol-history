@@ -1,5 +1,6 @@
 import sys
 import importlib
+from sqlalchemy import Engine
 from textual.app import App, ComposeResult, SystemCommand
 from textual.keys import Keys
 from textual.theme import Theme
@@ -8,7 +9,6 @@ from textual.widgets.data_table import RowDoesNotExist
 from textual.widgets import Footer, Header, DataTable, Input, Rule
 from textual.binding import Binding
 from textual.containers import Vertical
-from pykeepass import PyKeePass
 from typing import Any
 from exegol_history.config.config import AppConfig
 from exegol_history.db_api.exporting import export_objects
@@ -91,7 +91,7 @@ class DbHostsApp(App):
     ]
 
     def __init__(
-        self, config: dict[str, Any], kp: PyKeePass, show_add_screen: bool = False
+        self, config: dict[str, Any], engine: Engine, show_add_screen: bool = False
     ):
         self.CSS_PATH = "css/general.tcss"
         self.TITLE = (
@@ -99,7 +99,7 @@ class DbHostsApp(App):
         )
         super().__init__()
         self.config = config
-        self.kp = kp
+        self.engine = engine
         self.custom_theme = Theme(
             name="custom",
             primary=config["theme"].get("primary"),
@@ -128,7 +128,7 @@ class DbHostsApp(App):
     def on_mount(self) -> None:
         self.register_theme(self.custom_theme)
         self.theme = "custom"
-        tmp = get_hosts(self.kp)
+        tmp = get_hosts(self.engine)
 
         _tmp = Host()
         delattr(_tmp, "_sa_instance_state")
@@ -160,7 +160,7 @@ class DbHostsApp(App):
 
     def update_table(self) -> None:
         # Refresh the table
-        tmp = get_hosts(self.kp)
+        tmp = get_hosts(self.engine)
 
         table = self.screen.query_one(DataTable)
         table.clear()
@@ -214,7 +214,7 @@ class DbHostsApp(App):
         sys.exit(0)
 
     def check_added_host(self, parsed_hosts: list[Host]) -> None:
-        add_hosts(self.kp, parsed_hosts)
+        add_hosts(self.engine, parsed_hosts)
 
         self.update_table()
 
@@ -228,7 +228,7 @@ class DbHostsApp(App):
 
             if export_path:
                 try:
-                    exported = export_objects(format, get_hosts(self.kp))
+                    exported = export_objects(format, get_hosts(self.engine))
 
                     # Reference: https://docs.python.org/3/library/csv.html#id4
                     with open(export_path, "w", newline="") as f:
@@ -250,7 +250,7 @@ class DbHostsApp(App):
         def check_delete(result: list[int]) -> None:
             for id in result:
                 try:
-                    delete_hosts(self.kp, [id])
+                    delete_hosts(self.engine, [id])
                 except RuntimeError:
                     pass
 
@@ -269,7 +269,7 @@ class DbHostsApp(App):
 
     def action_edit_host(self) -> None:
         def check_edit_host(hosts: list[Host]) -> None:
-            edit_hosts(self.kp, hosts)
+            edit_hosts(self.engine, hosts)
 
             self.update_table()
 
@@ -278,7 +278,7 @@ class DbHostsApp(App):
 
         try:
             row_data = table.get_row_at(selected_row)
-            host = get_hosts(self.kp, id=row_data[0])[0]
+            host = get_hosts(self.engine, id=row_data[0])[0]
             self.push_screen(
                 EditObjectScreen(AssetsType.Hosts, host),
                 check_edit_host,

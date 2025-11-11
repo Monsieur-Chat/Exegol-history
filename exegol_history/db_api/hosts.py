@@ -2,19 +2,17 @@ from sqlalchemy.orm import Mapped, mapped_column, Session
 from sqlalchemy import select, UniqueConstraint, Engine
 from exegol_history.db_api.base import Base
 from exegol_history.db_api.utils import MESSAGE_ID_NOT_EXIST
+from sqlalchemy.dialects.sqlite import insert
 
 
 class Host(Base):
     __tablename__ = "hosts"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    ip: Mapped[str] = mapped_column()
-    hostname: Mapped[str] = mapped_column(nullable=True)
-    role: Mapped[str] = mapped_column(nullable=True)
-
     __table_args__ = (UniqueConstraint("ip", "hostname"),)
 
-    HEADERS = ["ip", "hostname", "role"]
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    ip: Mapped[str] = mapped_column(nullable=True)
+    hostname: Mapped[str] = mapped_column(nullable=True)
+    role: Mapped[str] = mapped_column(nullable=True)
 
     def __init__(
         self, id: int = None, ip: str = None, hostname: str = None, role: str = None
@@ -47,7 +45,15 @@ class Host(Base):
 
 def add_hosts(engine: Engine, hosts: list[Host]):
     with Session(engine, expire_on_commit=False) as session:
-        session.add_all(hosts)
+        for host in hosts:
+            query = insert(Host).values(**host.as_dict())
+            tmp = host.as_dict()
+            tmp.pop("id", None)
+            query = query.on_conflict_do_update(
+                index_elements=["ip", "hostname"], set_=tmp
+            )
+            session.execute(query)
+
         session.commit()
 
 

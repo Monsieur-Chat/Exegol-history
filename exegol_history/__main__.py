@@ -1,8 +1,7 @@
+import os
 import sys
-
 from rich.console import Console
 from rich.traceback import install
-
 from exegol_history.cli.arguments import parse_arguments
 from exegol_history.cli.functions import (
     ADD_SUBCOMMAND,
@@ -27,7 +26,6 @@ from exegol_history.cli.functions import (
     VERSION_SUBCOMMAND,
 )
 from exegol_history.config.config import AppConfig
-
 from sqlalchemy import exc
 
 
@@ -35,15 +33,15 @@ console = Console(soft_wrap=True)
 
 
 def main():
-    install()
+    install(show_locals=False)
 
     need_config = False
-    need_kp = False
+    need_db = False
     config = None
 
     args = parse_arguments().parse_args()
 
-    # Functions that needs KP database (also need config)
+    # Functions that needs the database (also need config)
     if args.command in [
         ADD_SUBCOMMAND,
         IMPORT_SUBCOMMAND,
@@ -53,7 +51,7 @@ def main():
         SET_SUBCOMMAND,
         SYNC_SUBCOMMAND,
     ]:
-        need_kp = True
+        need_db = True
         need_config = True
     # Functions that only need config
     elif args.command in [UNSET_SUBCOMMAND]:
@@ -68,12 +66,13 @@ def main():
 
         AppConfig.setup_profile(config["paths"]["profile_sh_path"])
 
-        if need_kp:
+        if need_db:
             engine = AppConfig.setup_db(db_path, db_key_path)
 
             # Synchronise all connectors
-            # if args.command != SYNC_SUBCOMMAND:
-            # sync_objects(kp, config)
+            if args.command != SYNC_SUBCOMMAND:
+                null_console = Console(file=open(os.devnull, "w"))
+                sync_objects(engine, config, null_console)
 
     try:
         # CLI
@@ -93,7 +92,7 @@ def main():
         elif args.command == DELETE_SUBCOMMAND:
             delete_objects(args, engine, console)
         elif args.command == SYNC_SUBCOMMAND:
-            sync_objects(engine, config)
+            sync_objects(engine, config, console, True)
 
         # TUI
         elif args.command == SET_SUBCOMMAND:

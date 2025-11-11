@@ -13,7 +13,7 @@ from rich.console import Console
 
 
 def test_edit_host_only_ip(engine: Engine):
-    host = Host(ip=IP_TEST_VALUE)
+    host = Host(id=1, ip=IP_TEST_VALUE)
 
     add_hosts(engine, [host])
 
@@ -27,7 +27,7 @@ def test_edit_host_only_ip(engine: Engine):
 
 
 def test_edit_host_half(engine: Engine):
-    host = Host(ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
+    host = Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
 
     add_hosts(engine, [host])
 
@@ -42,7 +42,9 @@ def test_edit_host_half(engine: Engine):
 
 
 def test_edit_host_full(engine: Engine):
-    host = Host(ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
+    host = Host(
+        id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE
+    )
 
     add_hosts(engine, [host])
 

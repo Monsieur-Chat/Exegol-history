@@ -73,10 +73,10 @@ CREDENTIAL2 = Credential(
 )
 
 HOSTS_TEST_VALUE = [
-    Host(1, IP_TEST_VALUE, HOSTNAME_TEST_VALUE, ROLE_TEST_VALUE),
-    Host(2, IP_TEST_VALUE + "2"),
-    Host(3, IP_TEST_VALUE + "2", HOSTNAME_TEST_VALUE + "2"),
-    Host(4, IP_TEST_VALUE + "3"),
+    Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE),
+    Host(id=2, ip=IP_TEST_VALUE + "2"),
+    Host(id=3, ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE + "2"),
+    Host(id=4, ip=IP_TEST_VALUE + "3"),
 ]
 
 TEST_ARTIFACTS_PATH = Path(__file__).parent / "artifacts"

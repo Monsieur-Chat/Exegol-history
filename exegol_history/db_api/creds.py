@@ -1,21 +1,21 @@
 from sqlalchemy.orm import Mapped, mapped_column, Session
 from sqlalchemy import select, UniqueConstraint, Engine
+from sqlalchemy.dialects.sqlite import insert
 from exegol_history.db_api.base import Base
 from exegol_history.db_api.utils import MESSAGE_ID_NOT_EXIST
 
 
 class Credential(Base):
     __tablename__ = "credentials"
+    __table_args__ = (UniqueConstraint("username", "domain"),)
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    username: Mapped[str] = mapped_column()
+    username: Mapped[str] = mapped_column(nullable=True)
     password: Mapped[str] = mapped_column(nullable=True)
     hash: Mapped[str] = mapped_column(nullable=True)
     domain: Mapped[str] = mapped_column(nullable=True)
 
-    __table_args__ = (UniqueConstraint("username", "domain"),)
-
     REDACT_SEPARATOR = "*"
-    HEADERS = ["username", "password", "hash", "domain"]
 
     def __init__(
         self,
@@ -55,7 +55,15 @@ class Credential(Base):
 
 def add_credentials(engine: Engine, credentials: list[Credential]):
     with Session(engine, expire_on_commit=False) as session:
-        session.add_all(credentials)
+        for credential in credentials:
+            query = insert(Credential).values(**credential.as_dict())
+            tmp = credential.as_dict()
+            tmp.pop("id", None)
+            query = query.on_conflict_do_update(
+                index_elements=["username", "domain"], set_=tmp
+            )
+            session.execute(query)
+
         session.commit()
 
 

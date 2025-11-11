@@ -82,3 +82,9 @@ def parse_and_update(
 
 def console_error(message: str):
     return f"[[bold red]![/bold red]] {message}"
+
+def console_success(message: str):
+    return f"[[bold green]+[/bold green]] {message}"
+
+def console_info(message: str):
+    return f"[[bold blue]*[/bold blue]] {message}"

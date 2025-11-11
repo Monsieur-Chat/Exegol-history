@@ -1,5 +1,6 @@
 import sys
 import importlib
+from sqlalchemy import Engine
 from textual.app import App, ComposeResult, SystemCommand
 from textual.keys import Keys
 from textual.screen import Screen
@@ -7,7 +8,6 @@ from textual.widgets.data_table import RowDoesNotExist
 from textual.widgets import Footer, Header, Input, Rule
 from textual.binding import Binding
 from textual import events
-from pykeepass import PyKeePass
 from typing import Any
 from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import (
@@ -97,7 +97,7 @@ class DbCredsApp(App):
     ]
 
     def __init__(
-        self, config: dict[str, Any], kp: PyKeePass, show_add_screen: bool = False
+        self, config: dict[str, Any], engine: Engine, show_add_screen: bool = False
     ):
         self.CSS_PATH = "css/general.tcss"
         self.TITLE = (
@@ -107,7 +107,7 @@ class DbCredsApp(App):
 
         self.config = config
         self.refresh_bindings()
-        self.kp = kp
+        self.engine = engine
         self.show_add_screen = show_add_screen
 
     def compose(self) -> ComposeResult:
@@ -118,7 +118,7 @@ class DbCredsApp(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        tmp = get_credentials(self.kp)
+        tmp = get_credentials(self.engine)
 
         _tmp = Credential()
         delattr(_tmp, "_sa_instance_state")
@@ -166,7 +166,7 @@ class DbCredsApp(App):
 
     def update_table(self) -> None:
         # Refresh the table
-        tmp = get_credentials(self.kp)
+        tmp = get_credentials(self.engine)
 
         table = self.screen.query_one(ObjectsDataTable)
         table.clear()
@@ -179,7 +179,7 @@ class DbCredsApp(App):
                 table = self.screen.query_one(ObjectsDataTable)
                 selected_row = table.cursor_row
                 row_data = table.get_row_at(selected_row)
-                select_credential = get_credentials(self.kp, id=row_data[0])[0]
+                select_credential = get_credentials(self.engine, id=row_data[0])[0]
 
                 self.exit(select_credential)
             except Exception:
@@ -245,7 +245,7 @@ class DbCredsApp(App):
         sys.exit(0)
 
     def check_added_creds(self, parsed_creds: list[Credential]) -> None:
-        add_credentials(self.kp, parsed_creds)
+        add_credentials(self.engine, parsed_creds)
         self.update_table()
 
         if self.show_add_screen:
@@ -265,7 +265,7 @@ class DbCredsApp(App):
 
             if export_path:
                 try:
-                    exported = export_objects(format, get_credentials(self.kp))
+                    exported = export_objects(format, get_credentials(self.engine))
 
                     # Reference: https://docs.python.org/3/library/csv.html#id4
                     with open(export_path, "w", newline="") as f:
@@ -286,7 +286,7 @@ class DbCredsApp(App):
         def check_delete(result: list[int]) -> None:
             for id in result:
                 try:
-                    delete_credentials(self.kp, [id])
+                    delete_credentials(self.engine, [id])
                 except RuntimeError:
                     continue
 
@@ -305,7 +305,7 @@ class DbCredsApp(App):
 
     def action_edit_credential(self) -> None:
         def check_edit_creds(credentials: list[Credential]) -> None:
-            edit_credentials(self.kp, credentials)
+            edit_credentials(self.engine, credentials)
 
             self.update_table()
 
@@ -314,7 +314,7 @@ class DbCredsApp(App):
 
         try:
             row_data = table.get_row_at(selected_row)
-            credential = get_credentials(self.kp, id=row_data[0])[0]
+            credential = get_credentials(self.engine, id=row_data[0])[0]
             self.push_screen(
                 EditObjectScreen(
                     AssetsType.Credentials,

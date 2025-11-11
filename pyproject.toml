@@ -1,16 +1,18 @@
 [tool.poetry]
 name = "exegol-history"
-version = "2.1"
+version = "3.0"
 description = "exegol-history is a TUI to manage compromised credentials and hosts during an engagement."
 authors = ["lap1nou"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-rich  = "^13.9.2"
-textual = "^3.3.0"
-pykeepass = "4.1.1"
-pyperclip = "1.9.0"
-SQLAlchemy = "2.0.44"
+python = "^3.11"
+rich  = "^14.2.0"
+textual = "^6.5.0"
+pykeepass = "^4.1.1"
+pyperclip = "^1.9.0"
+SQLAlchemy = "^2.0.44"
+psycopg = { version = "^3.2.6", extras = ["binary", "pool"] }
+pyyaml = "^6.0.2"
 
 [tool.poetry.scripts]
 exegol-history="exegol_history.__main__:main"
