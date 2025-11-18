@@ -35,9 +35,7 @@ async def test_edit_credential_only_username(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(engine) == [
-            Credential(id=1, username=USERNAME_TEST_VALUE)
-        ]
+        assert get_credentials(engine) == [Credential(1, username=USERNAME_TEST_VALUE)]
 
         await pilot.press(edit_credential_keybind)
         await select_input_erase_and_enter_text(
@@ -46,7 +44,7 @@ async def test_edit_credential_only_username(
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
         assert get_credentials(engine) == [
-            Credential(id=1, username=USERNAME_TEST_VALUE + "2")
+            Credential(1, username=USERNAME_TEST_VALUE + "2")
         ]
 
 
@@ -72,7 +70,7 @@ async def test_edit_credential_full(engine: Engine, load_mock_config: dict[str, 
 
         assert get_credentials(engine) == [
             Credential(
-                id=1,
+                1,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 hash=HASH_TEST_VALUE,
@@ -97,7 +95,7 @@ async def test_edit_credential_full(engine: Engine, load_mock_config: dict[str, 
 
         assert get_credentials(engine) == [
             Credential(
-                id=1,
+                1,
                 username=USERNAME_TEST_VALUE + "2",
                 password=PASSWORD_TEST_VALUE + "2",
                 hash=HASH_TEST_VALUE + "2",
@@ -134,9 +132,7 @@ async def test_edit_credential_issue_3(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(engine) == [
-            Credential(id=1, username=USERNAME_TEST_VALUE)
-        ]
+        assert get_credentials(engine) == [Credential(1, username=USERNAME_TEST_VALUE)]
 
         await pilot.press(edit_credential_keybind)
         await pilot.press(edit_credential_keybind)
@@ -146,5 +142,5 @@ async def test_edit_credential_issue_3(
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
         assert get_credentials(engine) == [
-            Credential(id=1, username=USERNAME_TEST_VALUE + "2")
+            Credential(1, username=USERNAME_TEST_VALUE + "2")
         ]

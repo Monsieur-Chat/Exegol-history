@@ -40,9 +40,7 @@ async def test_delete_credential(engine: Engine, load_mock_config):
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(engine) == [
-            Credential(id=1, username=USERNAME_TEST_VALUE)
-        ]
+        assert get_credentials(engine) == [Credential(1, username=USERNAME_TEST_VALUE)]
 
         await pilot.press(delete_credential_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
@@ -72,7 +70,7 @@ async def test_delete_credential_full(engine: Engine, load_mock_config):
 
         assert get_credentials(engine) == [
             Credential(
-                id=1,
+                1,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 hash=HASH_TEST_VALUE,
@@ -95,7 +93,13 @@ async def test_delete_credential_range(
     app = DbCredsApp(load_mock_config, engine)
     delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
 
-    add_credentials(engine, CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP)
+    add_credentials(
+        engine,
+        [
+            credential.as_dict()
+            for credential in CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
+        ],
+    )
     assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
 
     async with app.run_test() as pilot:
@@ -125,7 +129,13 @@ async def test_delete_credential_range_with_invalid_id(
     app = DbCredsApp(load_mock_config, engine)
     delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
 
-    add_credentials(engine, CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP)
+    add_credentials(
+        engine,
+        [
+            credential.as_dict()
+            for credential in CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
+        ],
+    )
     assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
 
     async with app.run_test() as pilot:
@@ -161,7 +171,7 @@ async def test_delete_credential_issue_3(engine: Engine, load_mock_config):
     app = DbCredsApp(load_mock_config, engine)
     delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
 
-    add_credentials(engine, [Credential(username=USERNAME_TEST_VALUE)])
+    add_credentials(engine, [Credential(username=USERNAME_TEST_VALUE).as_dict()])
 
     async with app.run_test() as pilot:
         await pilot.press(delete_credential_keybind)

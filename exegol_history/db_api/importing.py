@@ -44,21 +44,9 @@ def import_objects(
     for object in objects:
         # Reference: https://stackoverflow.com/questions/2544710/how-i-can-get-rid-of-none-values-in-dictionary, answer by John La Rooy
         # Remove empty string value
-        object = {k: v for k, v in object.items() if v != ""}
+        object = {k: v if v != "" else None for k, v in object.items()}
 
-        try:
-            object_to_add = (
-                Credential(**object)
-                if type(file_type) is CredsImportFileType
-                else Host(**object)
-            )
-        except TypeError as e:
-            print(e)
-            raise TypeError(
-                "Error while importing, is the file in the correct format ?"
-            )
-
-        result.append(object_to_add)
+        result.append(object)
 
     return result
 

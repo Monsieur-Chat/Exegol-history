@@ -24,7 +24,7 @@ async def test_export_host_csv(
     app = DbHostsApp(load_mock_config, engine)
     export_host_keybind = load_mock_config["keybindings"]["export_host"]
     temp_export_csv = tempfile.NamedTemporaryFile(delete=False)
-    add_hosts(engine, HOSTS_TEST_VALUE)
+    add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(export_host_keybind)
@@ -49,7 +49,7 @@ async def test_export_host_json(
     app = DbHostsApp(load_mock_config, engine)
     export_host_keybind = load_mock_config["keybindings"]["export_host"]
     temp_export_json = tempfile.NamedTemporaryFile(delete=False)
-    add_hosts(engine, HOSTS_TEST_VALUE)
+    add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(export_host_keybind)

@@ -59,7 +59,7 @@ def add_object(args: argparse.Namespace, engine: Engine, config: dict[str, Any])
             add_credentials(
                 engine,
                 [
-                    Credential(
+                    Credential.dict(
                         username=args.username,
                         password=args.password,
                         hash=args.hash,
@@ -72,8 +72,9 @@ def add_object(args: argparse.Namespace, engine: Engine, config: dict[str, Any])
             app.run(inline=config["theme"]["inline"])
     elif args.subcommand == HOSTS_SUBCOMMAND:
         if any([args.ip, args.hostname, args.role]):
-            host_to_add = Host(ip=args.ip, hostname=args.hostname, role=args.role)
-            add_hosts(engine, [host_to_add])
+            add_hosts(
+                engine, [Host.dict(ip=args.ip, hostname=args.hostname, role=args.role)]
+            )
         else:  # If no arguments are given, display the TUI adding screen
             app = DbHostsApp(config, engine, show_add_screen=True)
             app.run(inline=config["theme"]["inline"])
@@ -95,16 +96,16 @@ def edit_object(args: argparse.Namespace, engine: Engine, console: Console):
     try:
         if args.subcommand == CREDS_SUBCOMMAND:
             credential = Credential(
-                id=args.id,
+                args.id,
                 username=args.username,
                 password=args.password,
                 hash=args.hash,
                 domain=args.domain,
             )
-            edit_credentials(engine, [credential])
+            edit_credentials(engine, [credential.as_dict()])
         elif args.subcommand == HOSTS_SUBCOMMAND:
-            host = Host(id=args.id, ip=args.ip, hostname=args.hostname, role=args.role)
-            edit_hosts(engine, [host])
+            host = Host(args.id, ip=args.ip, hostname=args.hostname, role=args.role)
+            edit_hosts(engine, [host.as_dict()])
     except RuntimeError as e:
         console.print(console_error(e))
 

@@ -15,9 +15,7 @@ from exegol_history.tests.common import (
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 def test_unset_host(load_mock_config: dict[str, Any]):
-    host = Host(
-        id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE
-    )
+    host = Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
 
     write_host_in_profile(host, load_mock_config)
     command_output = subprocess.run(

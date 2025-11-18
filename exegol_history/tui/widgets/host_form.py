@@ -49,11 +49,17 @@ class HostForm(Container):
                 f"#{ID_HOSTNAME_INPUT}", BorderedInput
             ).value
             role = self.screen.query_one(f"#{ID_ROLE_INPUT}", BorderedInput).value
-            self.host = Host(
-                self.host.id if self.host else None,
-                ip=ip if ip else None,
-                hostname=hostname if hostname else None,
-                role=role if role else None,
-            )
+            # self.host = Host(
+            #    self.host.host_id if self.host else None,
+            #    ip=ip if ip else None,
+            #    hostname=hostname if hostname else None,
+            #    role=role if role else None,
+            # )
+            tmp = {
+                "host_id": self.host.host_id if self.host else None,
+                "ip": ip if ip else None,
+                "hostname": hostname if hostname else None,
+                "role": role if role else None,
+            }
 
-            self.screen.dismiss([self.host])
+            self.screen.dismiss(tmp)

@@ -268,8 +268,8 @@ class DbHostsApp(App):
             pass
 
     def action_edit_host(self) -> None:
-        def check_edit_host(hosts: list[Host]) -> None:
-            edit_hosts(self.engine, hosts)
+        def check_edit_host(host: Host) -> None:
+            edit_hosts(self.engine, [host])
 
             self.update_table()
 
@@ -278,7 +278,7 @@ class DbHostsApp(App):
 
         try:
             row_data = table.get_row_at(selected_row)
-            host = get_hosts(self.engine, id=row_data[0])[0]
+            host = get_hosts(self.engine, host_id=row_data[0])[0]
             self.push_screen(
                 EditObjectScreen(AssetsType.Hosts, host),
                 check_edit_host,

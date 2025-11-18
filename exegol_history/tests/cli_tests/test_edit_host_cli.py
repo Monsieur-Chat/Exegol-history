@@ -13,11 +13,11 @@ from rich.console import Console
 
 
 def test_edit_host_only_ip(engine: Engine):
-    host = Host(id=1, ip=IP_TEST_VALUE)
+    host = Host(1, ip=IP_TEST_VALUE)
 
-    add_hosts(engine, [host])
+    add_hosts(engine, [host.as_dict()])
 
-    command_line = f"{EDIT_SUBCOMMAND} {HOSTS_SUBCOMMAND} -i {host.id} --ip {IP_TEST_VALUE + '2'}".split()
+    command_line = f"{EDIT_SUBCOMMAND} {HOSTS_SUBCOMMAND} -i {host.host_id} --ip {IP_TEST_VALUE + '2'}".split()
     args = parse_arguments().parse_args(command_line)
 
     edit_object(args, engine, {})
@@ -27,11 +27,11 @@ def test_edit_host_only_ip(engine: Engine):
 
 
 def test_edit_host_half(engine: Engine):
-    host = Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
+    host = Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
 
-    add_hosts(engine, [host])
+    add_hosts(engine, [host.as_dict()])
 
-    command_line = f"{EDIT_SUBCOMMAND} {HOSTS_SUBCOMMAND} -i {host.id} --ip {IP_TEST_VALUE + '2'} --hostname {HOSTNAME_TEST_VALUE + '2'}".split()
+    command_line = f"{EDIT_SUBCOMMAND} {HOSTS_SUBCOMMAND} -i {host.host_id} --ip {IP_TEST_VALUE + '2'} --hostname {HOSTNAME_TEST_VALUE + '2'}".split()
     args = parse_arguments().parse_args(command_line)
 
     edit_object(args, engine, {})
@@ -42,13 +42,11 @@ def test_edit_host_half(engine: Engine):
 
 
 def test_edit_host_full(engine: Engine):
-    host = Host(
-        id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE
-    )
+    host = Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
 
-    add_hosts(engine, [host])
+    add_hosts(engine, [host.as_dict()])
 
-    command_line = f"{EDIT_SUBCOMMAND} {HOSTS_SUBCOMMAND} -i {host.id} --ip {IP_TEST_VALUE + '2'} --hostname {HOSTNAME_TEST_VALUE + '2'} --role {ROLE_TEST_VALUE + '2'}".split()
+    command_line = f"{EDIT_SUBCOMMAND} {HOSTS_SUBCOMMAND} -i {host.host_id} --ip {IP_TEST_VALUE + '2'} --hostname {HOSTNAME_TEST_VALUE + '2'} --role {ROLE_TEST_VALUE + '2'}".split()
     args = parse_arguments().parse_args(command_line)
 
     edit_object(args, engine, {})

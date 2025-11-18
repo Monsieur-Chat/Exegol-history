@@ -179,7 +179,9 @@ class DbCredsApp(App):
                 table = self.screen.query_one(ObjectsDataTable)
                 selected_row = table.cursor_row
                 row_data = table.get_row_at(selected_row)
-                select_credential = get_credentials(self.engine, id=row_data[0])[0]
+                select_credential = get_credentials(
+                    self.engine, credential_id=row_data[0]
+                )[0]
 
                 self.exit(select_credential)
             except Exception:
@@ -244,8 +246,8 @@ class DbCredsApp(App):
 
         sys.exit(0)
 
-    def check_added_creds(self, parsed_creds: list[Credential]) -> None:
-        add_credentials(self.engine, parsed_creds)
+    def check_added_creds(self, credential: list[dict]) -> None:
+        add_credentials(self.engine, credential)
         self.update_table()
 
         if self.show_add_screen:
@@ -304,8 +306,8 @@ class DbCredsApp(App):
             pass
 
     def action_edit_credential(self) -> None:
-        def check_edit_creds(credentials: list[Credential]) -> None:
-            edit_credentials(self.engine, credentials)
+        def check_edit_creds(credential: Credential) -> None:
+            edit_credentials(self.engine, [credential])
 
             self.update_table()
 
@@ -314,7 +316,7 @@ class DbCredsApp(App):
 
         try:
             row_data = table.get_row_at(selected_row)
-            credential = get_credentials(self.engine, id=row_data[0])[0]
+            credential = get_credentials(self.engine, credential_id=row_data[0])[0]
             self.push_screen(
                 EditObjectScreen(
                     AssetsType.Credentials,

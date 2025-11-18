@@ -55,7 +55,7 @@ def test_import_host_bad_format(engine: Engine):
     command_line = f"{IMPORT_SUBCOMMAND} {HOSTS_SUBCOMMAND} --format {HostsImportFileType.CSV.name} -f {temp_csv.name}".split()
     args = parse_arguments().parse_args(command_line)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         cli_import_objects(args, engine)
 
     temp_csv.close()

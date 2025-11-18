@@ -18,11 +18,11 @@ from rich.console import Console
 
 
 def test_edit_credential_only_username(engine: Engine):
-    credential = Credential(id=1, username=USERNAME_TEST_VALUE)
+    credential = Credential(1, username=USERNAME_TEST_VALUE)
 
-    add_credentials(engine, [credential])
+    add_credentials(engine, [credential.as_dict()])
 
-    command_line = f"{EDIT_SUBCOMMAND} {CREDS_SUBCOMMAND} -i {credential.id} -u {USERNAME_TEST_VALUE + '2'}".split()
+    command_line = f"{EDIT_SUBCOMMAND} {CREDS_SUBCOMMAND} -i {credential.credential_id} -u {USERNAME_TEST_VALUE + '2'}".split()
     args = parse_arguments().parse_args(command_line)
 
     edit_object(args, engine, {})
@@ -33,12 +33,12 @@ def test_edit_credential_only_username(engine: Engine):
 
 def test_edit_credential_half(engine: Engine):
     credential = Credential(
-        id=1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
+        1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
     )
 
-    add_credentials(engine, [credential])
+    add_credentials(engine, [credential.as_dict()])
 
-    command_line = f"{EDIT_SUBCOMMAND} {CREDS_SUBCOMMAND} -i {credential.id} -u {USERNAME_TEST_VALUE + '2'} -p {PASSWORD_TEST_VALUE + '2'}".split()
+    command_line = f"{EDIT_SUBCOMMAND} {CREDS_SUBCOMMAND} -i {credential.credential_id} -u {USERNAME_TEST_VALUE + '2'} -p {PASSWORD_TEST_VALUE + '2'}".split()
     args = parse_arguments().parse_args(command_line)
 
     edit_object(args, engine, {})
@@ -50,16 +50,16 @@ def test_edit_credential_half(engine: Engine):
 
 def test_edit_credential_full(engine: Engine):
     credential = Credential(
-        id=1,
+        1,
         username=USERNAME_TEST_VALUE,
         password=PASSWORD_TEST_VALUE,
         hash=HASH_TEST_VALUE,
         domain=DOMAIN_TEST_VALUE,
     )
 
-    add_credentials(engine, [credential])
+    add_credentials(engine, [credential.as_dict()])
 
-    command_line = f"{EDIT_SUBCOMMAND} {CREDS_SUBCOMMAND} -i {credential.id} -u {USERNAME_TEST_VALUE + '2'} -p {PASSWORD_TEST_VALUE + '2'} -H {HASH_TEST_VALUE + '2'} -d {DOMAIN_TEST_VALUE + '2'}".split()
+    command_line = f"{EDIT_SUBCOMMAND} {CREDS_SUBCOMMAND} -i {credential.credential_id} -u {USERNAME_TEST_VALUE + '2'} -p {PASSWORD_TEST_VALUE + '2'} -H {HASH_TEST_VALUE + '2'} -d {DOMAIN_TEST_VALUE + '2'}".split()
     args = parse_arguments().parse_args(command_line)
 
     edit_object(args, engine, {})

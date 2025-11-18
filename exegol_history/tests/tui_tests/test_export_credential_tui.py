@@ -26,7 +26,7 @@ async def test_export_credential_csv(engine: Engine, load_mock_config: dict[str,
     app = DbCredsApp(load_mock_config, engine)
     export_credential_keybind = load_mock_config["keybindings"]["export_credential"]
     temp_export_csv = tempfile.NamedTemporaryFile(delete=False)
-    add_credentials(engine, [CREDENTIAL1, CREDENTIAL2])
+    add_credentials(engine, [CREDENTIAL1.as_dict(), CREDENTIAL2.as_dict()])
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(export_credential_keybind)
@@ -49,7 +49,9 @@ async def test_export_credential_json(engine: Engine, load_mock_config: dict[str
     app = DbCredsApp(load_mock_config, engine)
     export_credential_keybind = load_mock_config["keybindings"]["export_credential"]
     temp_export_json = tempfile.NamedTemporaryFile(delete=False)
-    add_credentials(engine, CREDENTIALS_TEST_VALUE)
+    add_credentials(
+        engine, [credential.as_dict() for credential in CREDENTIALS_TEST_VALUE]
+    )
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(export_credential_keybind)

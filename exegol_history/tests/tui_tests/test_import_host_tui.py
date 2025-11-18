@@ -47,7 +47,7 @@ async def test_import_host_csv(engine: Engine, load_mock_config: dict[str, Any])
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
     assert get_hosts(engine) == [
-        Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
+        Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
     ]
 
 

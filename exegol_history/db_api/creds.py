@@ -9,7 +9,7 @@ class Credential(Base):
     __tablename__ = "credentials"
     __table_args__ = (UniqueConstraint("username", "domain"),)
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    credential_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(nullable=True)
     password: Mapped[str] = mapped_column(nullable=True)
     hash: Mapped[str] = mapped_column(nullable=True)
@@ -19,13 +19,13 @@ class Credential(Base):
 
     def __init__(
         self,
-        id: int = None,
+        credential_id: int = None,
         username: str = None,
         password: str = None,
         hash: str = None,
         domain: str = None,
     ):
-        self.id = id
+        self.credential_id = credential_id
         self.username = username
         self.password = password
         self.hash = hash
@@ -33,7 +33,7 @@ class Credential(Base):
 
     def __eq__(self, value):
         return (
-            (self.id == value.id)
+            (self.credential_id == value.credential_id)
             and (self.username == value.username)
             and (self.password == value.password)
             and (self.hash == value.hash)
@@ -41,7 +41,7 @@ class Credential(Base):
         )
 
     def __repr__(self) -> str:
-        return f"Credential(id={self.id}, username={self.username}, password={self.password}, hash={self.hash}, domain={self.domain})"
+        return f"Credential(credential_id={self.credential_id}, username={self.username}, password={self.password}, hash={self.hash}, domain={self.domain})"
 
     # Reference: https://stackoverflow.com/questions/5022066/how-to-serialize-sqlalchemy-result-to-json
     def as_dict(self):
@@ -50,30 +50,50 @@ class Credential(Base):
         }
 
     def __iter__(self):
-        return iter([self.id, self.username, self.password, self.hash, self.domain])
+        return iter(
+            [self.credential_id, self.username, self.password, self.hash, self.domain]
+        )
+
+    @staticmethod
+    def dict(
+        credential_id: int = None,
+        username: str = None,
+        password: str = None,
+        hash: str = None,
+        domain: str = None,
+    ) -> dict:
+        return {
+            "credential_id": credential_id,
+            "username": username,
+            "password": password,
+            "hash": hash,
+            "domain": domain,
+        }
 
 
-def add_credentials(engine: Engine, credentials: list[Credential]):
+def add_credentials(engine: Engine, credentials: list[dict]):
     with Session(engine, expire_on_commit=False) as session:
-        for credential in credentials:
-            query = insert(Credential).values(**credential.as_dict())
-            tmp = credential.as_dict()
-            tmp.pop("id", None)
-            query = query.on_conflict_do_update(
-                index_elements=["username", "domain"], set_=tmp
-            )
-            session.execute(query)
-
+        query = insert(Credential).values(credentials)
+        query = query.on_conflict_do_update(
+            index_elements=["username", "domain"],
+            set_={
+                "username": query.excluded.username,
+                "password": query.excluded.password,
+                "hash": query.excluded.hash,
+                "domain": query.excluded.domain,
+            },
+        )
+        session.execute(query)
         session.commit()
 
 
 def get_credentials(
-    engine: Engine, id: str = None, redacted: bool = False
+    engine: Engine, credential_id: str = None, redacted: bool = False
 ) -> list[Credential]:
     credentials = []
 
-    if id:
-        query = select(Credential).where(Credential.id == id)
+    if credential_id:
+        query = select(Credential).where(Credential.credential_id == credential_id)
     else:
         query = select(Credential)
 
@@ -89,9 +109,11 @@ def get_credentials(
         return credentials
 
 
-def delete_credentials(engine: Engine, ids: list[str] = list()):
+def delete_credentials(engine: Engine, credential_ids: list[str] = list()):
     with Session(engine, expire_on_commit=False) as session:
-        query = Credential.__table__.delete().where(Credential.id.in_(ids))
+        query = Credential.__table__.delete().where(
+            Credential.credential_id.in_(credential_ids)
+        )
         result = session.execute(query)
 
         session.commit()
@@ -100,21 +122,10 @@ def delete_credentials(engine: Engine, ids: list[str] = list()):
         raise RuntimeError(MESSAGE_ID_NOT_EXIST)
 
 
-def edit_credentials(engine: Engine, credentials: list[Credential]):
+def edit_credentials(engine: Engine, credentials: list[dict]):
     with Session(engine, expire_on_commit=False) as session:
-        for credential in credentials:
-            credential_to_modify = session.get(Credential, credential.id)
-
-            if not credential_to_modify:
-                raise RuntimeError(MESSAGE_ID_NOT_EXIST)
-
-            for attr in Credential.__table__.columns.keys():
-                if attr == "id":
-                    continue
-
-                value = getattr(credential, attr, None)
-
-                if value:
-                    setattr(credential_to_modify, attr, value)
-
-        session.commit()
+        try:
+            session.bulk_update_mappings(Credential, credentials)
+            session.commit()
+        except Exception:
+            raise RuntimeError(MESSAGE_ID_NOT_EXIST)

@@ -18,7 +18,7 @@ def test_add_credential_only_username(engine: Engine):
 
     add_object(args, engine, {})
 
-    assert get_credentials(engine) == [Credential(id=1, username=USERNAME_TEST_VALUE)]
+    assert get_credentials(engine) == [Credential(1, username=USERNAME_TEST_VALUE)]
 
 
 def test_add_credential_half(engine: Engine):
@@ -28,7 +28,7 @@ def test_add_credential_half(engine: Engine):
     add_object(args, engine, {})
 
     assert get_credentials(engine) == [
-        Credential(id=1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
+        Credential(1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE)
     ]
 
 
@@ -40,7 +40,7 @@ def test_add_credential_full(engine: Engine):
 
     assert get_credentials(engine) == [
         Credential(
-            id=1,
+            1,
             username=USERNAME_TEST_VALUE,
             password=PASSWORD_TEST_VALUE,
             hash=HASH_TEST_VALUE,

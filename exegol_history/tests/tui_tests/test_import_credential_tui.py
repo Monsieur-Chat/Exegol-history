@@ -61,7 +61,7 @@ async def test_import_credential_csv_textarea(
 
     assert get_credentials(engine) == [
         Credential(
-            id=1,
+            1,
             username=USERNAME_TEST_VALUE,
             password=PASSWORD_TEST_VALUE,
             hash=HASH_TEST_VALUE,
@@ -127,7 +127,7 @@ async def test_import_credential_json_textarea(
 
     assert get_credentials(engine) == [
         Credential(
-            id=1,
+            1,
             username=USERNAME_TEST_VALUE,
             password=PASSWORD_TEST_VALUE,
             hash=HASH_TEST_VALUE,

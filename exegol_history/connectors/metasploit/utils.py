@@ -26,7 +26,7 @@ class MetasploitCredentialType(str, Enum):
     PostgresMD5 = "Metasploit::Credential::PostgresMD5"
 
 
-def is_private_data_hash(private_data_type: str):
+def is_private_data_hash(private_data_type: str) -> bool:
     return private_data_type in [
         MetasploitCredentialType.NonreplayableHash,
         MetasploitCredentialType.NTLMHash,
@@ -36,7 +36,7 @@ def is_private_data_hash(private_data_type: str):
     ]
 
 
-def get_msf_postgres_db_infos(msf_db_config_path: str) -> (str, str):
+def get_msf_postgres_db_infos(msf_db_config_path: str) -> tuple[str, str, str, str]:
     with open(msf_db_config_path, "rb") as msf_config:
         msf_config_yml = yaml.safe_load(msf_config)
         database = msf_config_yml["development"]["database"]

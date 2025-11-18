@@ -34,25 +34,25 @@ class CredentialForm(Container):
             "Username",
             placeholder="Administrator",
             id=ID_USERNAME_INPUT,
-            value=self.credential.username if self.credential else "",
+            value=self.credential.username if self.credential else None,
         )
         yield BorderedInput(
             "Password",
             placeholder="Password123!",
             id=ID_PASSWORD_INPUT,
-            value=self.credential.password if self.credential else "",
+            value=self.credential.password if self.credential else None,
         )
         yield BorderedInput(
             "Hash",
             placeholder="b4b9b02e6f09a9bd760f388b67351e2b",
             id=ID_HASH_INPUT,
-            value=self.credential.hash if self.credential else "",
+            value=self.credential.hash if self.credential else None,
         )
         yield BorderedInput(
             "Domain",
             placeholder="example.local",
             id=ID_DOMAIN_INPUT,
-            value=self.credential.domain if self.credential else "",
+            value=self.credential.domain if self.credential else None,
             suggester=SuggestFromList(self.domains, case_sensitive=False),
         )
         yield ActionButtons()
@@ -67,12 +67,21 @@ class CredentialForm(Container):
             ).value
             hash = self.screen.query_one(f"#{ID_HASH_INPUT}", BorderedInput).value
             domain = self.screen.query_one(f"#{ID_DOMAIN_INPUT}", BorderedInput).value
-            self.credential = Credential(
-                id=self.credential.id if self.credential else None,
-                username=username if username else None,
-                password=password if password else None,
-                hash=hash if hash else None,
-                domain=domain if domain else None,
-            )
+            # self.credential = Credential(
+            #    credential_id=self.credential.credential_id if self.credential else None,
+            #    username=username if username else None,
+            #    password=password if password else None,
+            #    hash=hash if hash else None,
+            #    domain=domain if domain else None,
+            # )
+            tmp = {
+                "credential_id": self.credential.credential_id
+                if self.credential
+                else None,
+                "username": username if username else None,
+                "password": password if password else None,
+                "hash": hash if hash else None,
+                "domain": domain if domain else None,
+            }
 
-            self.screen.dismiss([self.credential])
+            self.screen.dismiss(tmp)

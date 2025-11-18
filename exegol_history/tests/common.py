@@ -16,29 +16,29 @@ HASH_TEST_VALUE = "hash"
 DOMAIN_TEST_VALUE = "test.local"
 CREDENTIALS_TEST_VALUE = [
     Credential(
-        id=1,
+        1,
         username=USERNAME_TEST_VALUE + "7",
     ),
     Credential(
-        id=2,
+        2,
         username=USERNAME_TEST_VALUE,
         password=PASSWORD_TEST_VALUE,
         hash=HASH_TEST_VALUE,
         domain=DOMAIN_TEST_VALUE,
     ),
     Credential(
-        id=3, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
+        3, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     ),
     Credential(
-        id=4,
+        4,
         username=USERNAME_TEST_VALUE + "3",
         password=PASSWORD_TEST_VALUE,
         hash=HASH_TEST_VALUE,
     ),
-    Credential(id=5, username=USERNAME_TEST_VALUE + "4"),
-    Credential(id=6, username=USERNAME_TEST_VALUE),
+    Credential(5, username=USERNAME_TEST_VALUE + "4"),
+    Credential(6, username=USERNAME_TEST_VALUE),
     Credential(
-        id=7,
+        7,
         username=USERNAME_TEST_VALUE + "6",
         password=PASSWORD_TEST_VALUE + "6",
         hash=HASH_TEST_VALUE + "6",
@@ -47,10 +47,10 @@ CREDENTIALS_TEST_VALUE = [
 ]
 CREDENTIALS_TEST_VALUE_GOAD_PYPYKATZ = [
     Credential(
-        id=1, username="DC$", hash="0b65cc18dde1c5548f06b8db074a76b3", domain="SCCMLAB"
+        1, username="DC$", hash="0b65cc18dde1c5548f06b8db074a76b3", domain="SCCMLAB"
     ),
     Credential(
-        id=2,
+        2,
         username="localuser",
         password="password",
         hash="8846f7eaee8fb117ad06bdd830b7586c",
@@ -59,9 +59,9 @@ CREDENTIALS_TEST_VALUE_GOAD_PYPYKATZ = [
 ]
 
 CREDENTIALS_TEST_VALUE_KDBX = [
-    Credential(id=1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE),
+    Credential(1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE),
     Credential(
-        id=2, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
+        2, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     ),
 ]
 CREDENTIAL1 = Credential(username=USERNAME_TEST_VALUE, hash=HASH_TEST_VALUE)
@@ -73,10 +73,10 @@ CREDENTIAL2 = Credential(
 )
 
 HOSTS_TEST_VALUE = [
-    Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE),
-    Host(id=2, ip=IP_TEST_VALUE + "2"),
-    Host(id=3, ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE + "2"),
-    Host(id=4, ip=IP_TEST_VALUE + "3"),
+    Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE),
+    Host(2, ip=IP_TEST_VALUE + "2"),
+    Host(3, ip=IP_TEST_VALUE + "2", hostname=HOSTNAME_TEST_VALUE + "2"),
+    Host(4, ip=IP_TEST_VALUE + "3"),
 ]
 
 TEST_ARTIFACTS_PATH = Path(__file__).parent / "artifacts"
@@ -91,6 +91,14 @@ TEST_CREDS_PYPYKATZ_JSON = TEST_ARTIFACTS_PATH / "pypykatz.json"
 TEST_CREDS_SECRETSDUMP = TEST_ARTIFACTS_PATH / "secretsdump.dsv"
 TEST_CREDS_KDBX = TEST_ARTIFACTS_PATH / "import.kdbx"
 TEST_CREDS_KDBX_KEYFILE = TEST_ARTIFACTS_PATH / "import.key"
+TEST_NETEXEC_WORKSPACE = TEST_ARTIFACTS_PATH / "netexec_artifacts"
+
+# Path for patching function for mocking
+SQLITE3_PATCH_PATH = "exegol_history.connectors.netexec.netexec_sync.sqlite3"
+PSYCOPG_PATCH_PATH = "exegol_history.connectors.metasploit.metasploit_sync.psycopg"
+GET_PG_DB_INFOS_PATCH_PATH = (
+    "exegol_history.connectors.metasploit.metasploit_sync.get_msf_postgres_db_infos"
+)
 
 
 async def select_input_and_enter_text(pilot, input_id, input_text):

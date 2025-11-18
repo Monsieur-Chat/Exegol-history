@@ -20,7 +20,12 @@ edit_host = "f5"
 export_host = "f6"
 quit = "ctrl+c"
 
-[sync.nxc]
+[sync.netexec]
+enabled = true
+auto = false
+
+[sync.metasploit]
+enabled = false
 auto = false
 
 [theme]
@@ -40,3 +45,4 @@ add_icon = "➕"
 delete_icon = "➖"
 edit_icon = "📝"
 export_icon = "📤"
+inline = false

@@ -21,13 +21,15 @@ from exegol_history.tests.common import (
 
 def test_delete_credential(engine: Engine):
     credential1 = Credential(
-        id=1, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
+        1, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     )
-    credential2 = Credential(id=2, username=USERNAME_TEST_VALUE)
+    credential2 = Credential(2, username=USERNAME_TEST_VALUE)
     credential3 = Credential(
-        id=3, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
+        3, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
     )
-    add_credentials(engine, [credential1, credential2, credential3])
+    add_credentials(
+        engine, [credential1.as_dict(), credential2.as_dict(), credential3.as_dict()]
+    )
 
     command_line = f"{DELETE_SUBCOMMAND} {CREDS_SUBCOMMAND} -i 2".split()
     args = parse_arguments().parse_args(command_line)
@@ -39,21 +41,28 @@ def test_delete_credential(engine: Engine):
 
 def test_delete_credential_range(engine: Engine):
     credential1 = Credential(
-        id=1, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
+        1, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
     )
-    credential2 = Credential(id=2, username=USERNAME_TEST_VALUE)
+    credential2 = Credential(2, username=USERNAME_TEST_VALUE)
     credential3 = Credential(
-        id=3, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
+        3, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE
     )
     credential4 = Credential(
-        id=4, username=USERNAME_TEST_VALUE + "4", password=PASSWORD_TEST_VALUE
+        4, username=USERNAME_TEST_VALUE + "4", password=PASSWORD_TEST_VALUE
     )
     credential5 = Credential(
-        id=5, username=USERNAME_TEST_VALUE + "5", password=PASSWORD_TEST_VALUE
+        5, username=USERNAME_TEST_VALUE + "5", password=PASSWORD_TEST_VALUE
     )
 
     add_credentials(
-        engine, [credential1, credential2, credential3, credential4, credential5]
+        engine,
+        [
+            credential1.as_dict(),
+            credential2.as_dict(),
+            credential3.as_dict(),
+            credential4.as_dict(),
+            credential5.as_dict(),
+        ],
     )
 
     command_line = f"{DELETE_SUBCOMMAND} {CREDS_SUBCOMMAND} -i 1-3,5".split()

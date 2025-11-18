@@ -34,7 +34,7 @@ async def test_delete_host(engine: Engine, load_mock_config: dict[str, Any]):
         await select_input_and_enter_text(pilot, f"#{ID_IP_INPUT}", IP_TEST_VALUE)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE)]
+        assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE)]
 
         await pilot.press(delete_host_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
@@ -59,7 +59,7 @@ async def test_delete_host_full(engine: Engine, load_mock_config: dict[str, Any]
 
         assert get_hosts(engine) == [
             Host(
-                id=1,
+                1,
                 ip=IP_TEST_VALUE,
                 hostname=HOSTNAME_TEST_VALUE,
                 role=ROLE_TEST_VALUE,
@@ -79,7 +79,7 @@ async def test_delete_host_range(
     app = DbHostsApp(load_mock_config, engine)
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
-    add_hosts(engine, HOSTS_TEST_VALUE)
+    add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
     assert get_hosts(engine) == HOSTS_TEST_VALUE
 
     async with app.run_test() as pilot:
@@ -102,7 +102,7 @@ async def test_delete_host_range_with_invalid_id(
     app = DbHostsApp(load_mock_config, engine)
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
-    add_hosts(engine, HOSTS_TEST_VALUE)
+    add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
     assert get_hosts(engine) == HOSTS_TEST_VALUE
 
     async with app.run_test() as pilot:
@@ -133,7 +133,7 @@ async def test_delete_host_issue_3(engine: Engine, load_mock_config: dict[str, A
     app = DbHostsApp(load_mock_config, engine)
     delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
 
-    add_hosts(engine, [Host(ip=IP_TEST_VALUE)])
+    add_hosts(engine, [Host(ip=IP_TEST_VALUE).as_dict()])
 
     async with app.run_test() as pilot:
         await pilot.press(delete_host_keybind)

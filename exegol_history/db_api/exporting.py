@@ -8,7 +8,8 @@ from exegol_history.db_api.creds import Credential
 from exegol_history.db_api.hosts import Host
 from exegol_history.db_api.importing import CredsImportFileType, HostsImportFileType
 
-PROPERTY_NAME_ID = "id"
+CREDENTIAL_PROPERTY_NAME_ID = "credential_id"
+HOST_PROPERTY_NAME_ID = "host_id"
 
 
 class CredsExportFileType(Enum):
@@ -46,7 +47,8 @@ def export_objects_json(objects: list[Any]):
 
     for object in objects:
         dict = object.as_dict()
-        dict.pop(PROPERTY_NAME_ID, None)
+        dict.pop(CREDENTIAL_PROPERTY_NAME_ID, None)
+        dict.pop(HOST_PROPERTY_NAME_ID, None)
         results.append(dict)
 
     return json.dumps(results)

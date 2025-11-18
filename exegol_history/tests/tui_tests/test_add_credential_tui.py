@@ -39,7 +39,7 @@ async def test_add_credential_only_username(
 
     credentials = get_credentials(engine)
 
-    assert credentials == [Credential(id=1, username=USERNAME_TEST_VALUE)]
+    assert credentials == [Credential(1, username=USERNAME_TEST_VALUE)]
 
 
 @pytest.mark.asyncio
@@ -58,7 +58,7 @@ async def test_add_credential_half(engine: Engine, load_mock_config: dict[str, A
     credentials = get_credentials(engine)
 
     assert credentials == [
-        Credential(id=1, username=USERNAME_TEST_VALUE, hash=HASH_TEST_VALUE)
+        Credential(1, username=USERNAME_TEST_VALUE, hash=HASH_TEST_VALUE)
     ]
 
 
@@ -85,7 +85,7 @@ async def test_add_credential_full(engine: Engine, load_mock_config: dict[str, A
 
     assert credentials == [
         Credential(
-            id=1,
+            1,
             username=USERNAME_TEST_VALUE,
             password=PASSWORD_TEST_VALUE,
             hash=HASH_TEST_VALUE,
@@ -117,7 +117,7 @@ async def test_add_and_set_credential_full(
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
     credential = Credential(
-        id=1,
+        1,
         username=USERNAME_TEST_VALUE,
         password=PASSWORD_TEST_VALUE,
         hash=HASH_TEST_VALUE,
@@ -150,7 +150,7 @@ async def test_add_credential_empty(engine: Engine, load_mock_config: dict[str, 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
-    assert get_credentials(engine) == [Credential(id=1)]
+    assert get_credentials(engine) == [Credential(1)]
 
 
 @pytest.mark.asyncio
@@ -169,7 +169,7 @@ async def test_add_credential_existing(
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
         assert get_credentials(engine) == [
-            Credential(id=1, username=USERNAME_TEST_VALUE, domain=DOMAIN_TEST_VALUE)
+            Credential(1, username=USERNAME_TEST_VALUE, domain=DOMAIN_TEST_VALUE)
         ]
         await pilot.press(add_credential_keybind)
         await select_input_and_enter_text(
@@ -185,7 +185,7 @@ async def test_add_credential_existing(
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
         assert get_credentials(engine) == [
             Credential(
-                id=1,
+                1,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 hash=HASH_TEST_VALUE,
@@ -209,7 +209,7 @@ async def test_add_credential_issue_3(  # https://github.com/ThePorgs/Exegol-his
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-    assert get_credentials(engine) == [Credential(id=1, username=USERNAME_TEST_VALUE)]
+    assert get_credentials(engine) == [Credential(1, username=USERNAME_TEST_VALUE)]
 
 
 @pytest.mark.asyncio
@@ -237,7 +237,7 @@ async def test_add_credential_multiple_local_account(
 
         assert get_credentials(engine) == [
             Credential(
-                id=1,
+                1,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 domain=DOMAIN_TEST_VALUE,
@@ -258,13 +258,13 @@ async def test_add_credential_multiple_local_account(
 
         assert get_credentials(engine) == [
             Credential(
-                id=1,
+                1,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 domain=DOMAIN_TEST_VALUE,
             ),
             Credential(
-                id=2,
+                2,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 domain=DOMAIN_TEST_VALUE + "2",

@@ -9,22 +9,26 @@ class Host(Base):
     __tablename__ = "hosts"
     __table_args__ = (UniqueConstraint("ip", "hostname"),)
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    host_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     ip: Mapped[str] = mapped_column(nullable=True)
     hostname: Mapped[str] = mapped_column(nullable=True)
     role: Mapped[str] = mapped_column(nullable=True)
 
     def __init__(
-        self, id: int = None, ip: str = None, hostname: str = None, role: str = None
+        self,
+        host_id: int = None,
+        ip: str = None,
+        hostname: str = None,
+        role: str = None,
     ):
-        self.id = id
+        self.host_id = host_id
         self.ip = ip
         self.hostname = hostname
         self.role = role
 
     def __eq__(self, value):
         return (
-            (self.id == value.id)
+            (self.host_id == value.host_id)
             and (self.ip == value.ip)
             and (self.hostname == value.hostname)
             and (self.role == value.role)
@@ -37,31 +41,43 @@ class Host(Base):
         }
 
     def __repr__(self) -> str:
-        return f"Host(id={self.id}, ip={self.ip}, hostname={self.hostname}, role={self.role})"
+        return f"Host(host_id={self.host_id}, ip={self.ip}, hostname={self.hostname}, role={self.role})"
 
     def __iter__(self):
-        return iter([self.id, self.ip, self.hostname, self.role])
+        return iter([self.host_id, self.ip, self.hostname, self.role])
+
+    @staticmethod
+    def dict(
+        host_id: int = None, ip: str = None, hostname: str = None, role: str = None
+    ) -> dict:
+        return {
+            "host_id": host_id,
+            "ip": ip,
+            "hostname": hostname,
+            "role": role,
+        }
 
 
-def add_hosts(engine: Engine, hosts: list[Host]):
+def add_hosts(engine: Engine, hosts: list[dict]):
     with Session(engine, expire_on_commit=False) as session:
-        for host in hosts:
-            query = insert(Host).values(**host.as_dict())
-            tmp = host.as_dict()
-            tmp.pop("id", None)
-            query = query.on_conflict_do_update(
-                index_elements=["ip", "hostname"], set_=tmp
-            )
-            session.execute(query)
-
+        query = insert(Host).values(hosts)
+        query = query.on_conflict_do_update(
+            index_elements=["ip", "hostname"],
+            set_={
+                "ip": query.excluded.ip,
+                "hostname": query.excluded.hostname,
+                "role": query.excluded.role,
+            },
+        )
+        session.execute(query)
         session.commit()
 
 
-def get_hosts(engine: Engine, id: str = None) -> list[Host]:
+def get_hosts(engine: Engine, host_id: str = None) -> list[Host]:
     hosts = []
 
-    if id:
-        query = select(Host).where(Host.id == id)
+    if host_id:
+        query = select(Host).where(Host.host_id == host_id)
     else:
         query = select(Host)
 
@@ -73,9 +89,9 @@ def get_hosts(engine: Engine, id: str = None) -> list[Host]:
         return hosts
 
 
-def delete_hosts(engine: Engine, ids: list[str] = list()):
+def delete_hosts(engine: Engine, host_ids: list[str] = list()):
     with Session(engine, expire_on_commit=False) as session:
-        query = Host.__table__.delete().where(Host.id.in_(ids))
+        query = Host.__table__.delete().where(Host.host_id.in_(host_ids))
         result = session.execute(query)
 
         session.commit()
@@ -85,20 +101,26 @@ def delete_hosts(engine: Engine, ids: list[str] = list()):
 
 
 def edit_hosts(engine: Engine, hosts: list[Host]):
+    # with Session(engine, expire_on_commit=False) as session:
+    #    for host in hosts:
+    #        credential_to_modify = session.get(Host, host.host_id)
+    #
+    #        if not credential_to_modify:
+    #            raise RuntimeError(MESSAGE_ID_NOT_EXIST)
+    #
+    #        for attr in Host.__table__.columns.keys():
+    #            if attr == "host_id":
+    #                continue
+    #
+    #            value = getattr(host, attr, None)
+    #
+    #            if value:
+    #                setattr(credential_to_modify, attr, value)
+    #
+    #    session.commit()
     with Session(engine, expire_on_commit=False) as session:
-        for host in hosts:
-            credential_to_modify = session.get(Host, host.id)
-
-            if not credential_to_modify:
-                raise RuntimeError(MESSAGE_ID_NOT_EXIST)
-
-            for attr in Host.__table__.columns.keys():
-                if attr == "id":
-                    continue
-
-                value = getattr(host, attr, None)
-
-                if value:
-                    setattr(credential_to_modify, attr, value)
-
-        session.commit()
+        try:
+            session.bulk_update_mappings(Host, hosts)
+            session.commit()
+        except Exception:
+            raise RuntimeError(MESSAGE_ID_NOT_EXIST)

@@ -23,7 +23,7 @@ async def test_edit_host_only_ip(engine: Engine, load_mock_config: dict[str, Any
         await select_input_and_enter_text(pilot, f"#{ID_IP_INPUT}", IP_TEST_VALUE)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE)]
+        assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE)]
 
         await pilot.press(edit_host_keybind)
         await select_input_erase_and_enter_text(
@@ -31,7 +31,7 @@ async def test_edit_host_only_ip(engine: Engine, load_mock_config: dict[str, Any
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE + "2")]
+        assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE + "2")]
 
 
 @pytest.mark.asyncio
@@ -45,7 +45,7 @@ async def test_edit_host_full(engine: Engine, load_mock_config: dict[str, Any]):
         await select_input_and_enter_text(pilot, f"#{ID_IP_INPUT}", IP_TEST_VALUE)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE)]
+        assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE)]
 
         await pilot.press(edit_host_keybind)
         await select_input_erase_and_enter_text(
@@ -53,7 +53,7 @@ async def test_edit_host_full(engine: Engine, load_mock_config: dict[str, Any]):
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE + "2")]
+        assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE + "2")]
 
 
 @pytest.mark.asyncio
@@ -80,7 +80,7 @@ async def test_edit_host_issue_3(engine: Engine, load_mock_config: dict[str, Any
         await select_input_and_enter_text(pilot, f"#{ID_IP_INPUT}", IP_TEST_VALUE)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE)]
+        assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE)]
 
         await pilot.press(edit_host_keybind)
         await pilot.press(edit_host_keybind)
@@ -89,4 +89,4 @@ async def test_edit_host_issue_3(engine: Engine, load_mock_config: dict[str, Any
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE + "2")]
+        assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE + "2")]

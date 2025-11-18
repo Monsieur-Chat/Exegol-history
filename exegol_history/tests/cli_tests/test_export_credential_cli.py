@@ -29,7 +29,7 @@ import pytest
 def test_export_credential_csv(engine: Engine, TEST_CREDENTIAL2: list[Credential]):
     console = Console(file=io.StringIO())
 
-    add_credentials(engine, TEST_CREDENTIAL2)
+    add_credentials(engine, [credential.as_dict() for credential in TEST_CREDENTIAL2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name}".split()
     args = parse_arguments().parse_args(command_line)
@@ -46,7 +46,7 @@ def test_export_credential_csv_delimiter(
 ):
     console = Console(file=io.StringIO())
 
-    add_credentials(engine, TEST_CREDENTIAL2)
+    add_credentials(engine, [credential.as_dict() for credential in TEST_CREDENTIAL2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name} --delimiter :".split()
     args = parse_arguments().parse_args(command_line)
@@ -68,7 +68,7 @@ def test_export_credential_csv_delimiter(
 def test_export_credential_json(engine: Engine, TEST_CREDENTIAL2: list[Credential]):
     console = Console(file=io.StringIO())
 
-    add_credentials(engine, TEST_CREDENTIAL2)
+    add_credentials(engine, [credential.as_dict() for credential in TEST_CREDENTIAL2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.JSON.name}".split()
     args = parse_arguments().parse_args(command_line)
@@ -97,7 +97,7 @@ def test_export_credential_json(engine: Engine, TEST_CREDENTIAL2: list[Credentia
 def test_export_credential_redacted(engine: Engine, TEST_CREDENTIAL2: list[Credential]):
     console = Console(file=io.StringIO())
 
-    add_credentials(engine, TEST_CREDENTIAL2)
+    add_credentials(engine, [credential.as_dict() for credential in TEST_CREDENTIAL2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name} --redacted".split()
     args = parse_arguments().parse_args(command_line)
@@ -112,7 +112,7 @@ def test_export_import_credential_csv(
 ):
     console = Console(file=io.StringIO())
 
-    add_credentials(engine, TEST_CREDENTIAL2)
+    add_credentials(engine, [credential.as_dict() for credential in TEST_CREDENTIAL2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name}".split()
     args = parse_arguments().parse_args(command_line)
@@ -144,7 +144,7 @@ def test_export_import_credential_json(
 ):
     console = Console(file=io.StringIO())
 
-    add_credentials(engine, TEST_CREDENTIAL2)
+    add_credentials(engine, [credential.as_dict() for credential in TEST_CREDENTIAL2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.JSON.name}".split()
     args = parse_arguments().parse_args(command_line)

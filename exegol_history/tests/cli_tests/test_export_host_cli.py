@@ -24,7 +24,7 @@ import pytest
 def test_export_host_csv(engine: Engine, TEST_HOST2: list[Host]):
     console = Console(file=io.StringIO())
 
-    add_hosts(engine, TEST_HOST2)
+    add_hosts(engine, [host.as_dict() for host in TEST_HOST2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {HOSTS_SUBCOMMAND} --format {HostsImportFileType.CSV.name}".split()
     args = parse_arguments().parse_args(command_line)
@@ -39,7 +39,7 @@ def test_export_host_csv(engine: Engine, TEST_HOST2: list[Host]):
 def test_export_host_csv_delimiter(engine: Engine, TEST_HOST2: list[Host]):
     console = Console(file=io.StringIO())
 
-    add_hosts(engine, TEST_HOST2)
+    add_hosts(engine, [host.as_dict() for host in TEST_HOST2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {HOSTS_SUBCOMMAND} --format {HostsImportFileType.CSV.name} --delimiter :".split()
     args = parse_arguments().parse_args(command_line)
@@ -61,7 +61,7 @@ def test_export_host_csv_delimiter(engine: Engine, TEST_HOST2: list[Host]):
 def test_export_host_json(engine: Engine, TEST_HOST2: list[Host]):
     console = Console(file=io.StringIO())
 
-    add_hosts(engine, TEST_HOST2)
+    add_hosts(engine, [host.as_dict() for host in TEST_HOST2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {HOSTS_SUBCOMMAND} --format {HostsImportFileType.JSON.name}".split()
     args = parse_arguments().parse_args(command_line)
@@ -89,7 +89,7 @@ def test_export_host_json(engine: Engine, TEST_HOST2: list[Host]):
 def test_export_import_host_csv(engine: Engine, TEST_HOST2: list[Host]):
     console = Console(file=io.StringIO())
 
-    add_hosts(engine, TEST_HOST2)
+    add_hosts(engine, [host.as_dict() for host in TEST_HOST2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {HOSTS_SUBCOMMAND} --format {HostsImportFileType.CSV.name}".split()
     args = parse_arguments().parse_args(command_line)
@@ -119,7 +119,7 @@ def test_export_import_host_csv(engine: Engine, TEST_HOST2: list[Host]):
 def test_export_import_host_json(engine: Engine, TEST_HOST2: list[Host]):
     console = Console(file=io.StringIO())
 
-    add_hosts(engine, TEST_HOST2)
+    add_hosts(engine, [host.as_dict() for host in TEST_HOST2])
 
     command_line = f"{EXPORT_SUBCOMMAND} {HOSTS_SUBCOMMAND} --format {HostsImportFileType.JSON.name}".split()
     args = parse_arguments().parse_args(command_line)

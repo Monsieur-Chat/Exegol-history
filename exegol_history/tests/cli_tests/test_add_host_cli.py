@@ -15,7 +15,7 @@ def test_add_host_only_ip(engine: Engine):
 
     add_object(args, engine, {})
 
-    assert get_hosts(engine) == [Host(id=1, ip=IP_TEST_VALUE)]
+    assert get_hosts(engine) == [Host(1, ip=IP_TEST_VALUE)]
 
 
 def test_add_host_half(engine: Engine):
@@ -25,7 +25,7 @@ def test_add_host_half(engine: Engine):
     add_object(args, engine, {})
 
     assert get_hosts(engine) == [
-        Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
+        Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE)
     ]
 
 
@@ -36,5 +36,5 @@ def test_add_host_full(engine: Engine):
     add_object(args, engine, {})
 
     assert get_hosts(engine) == [
-        Host(id=1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
+        Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
     ]
