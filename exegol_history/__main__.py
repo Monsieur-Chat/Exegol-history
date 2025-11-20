@@ -1,5 +1,6 @@
-import os
+from pathlib import Path
 import sys
+import tomllib
 from rich.console import Console
 from rich.traceback import install
 from exegol_history.cli.arguments import parse_arguments
@@ -16,6 +17,7 @@ from exegol_history.cli.functions import (
     add_object,
     cli_export_objects,
     cli_import_objects,
+    cli_sync_objects,
     delete_objects,
     edit_object,
     set_objects,
@@ -25,7 +27,7 @@ from exegol_history.cli.functions import (
     unset_objects,
     VERSION_SUBCOMMAND,
 )
-from exegol_history.config.config import AppConfig
+from exegol_history.config.config import AppConfig, ConfigTest
 from sqlalchemy import exc
 
 
@@ -66,13 +68,21 @@ def main():
 
         AppConfig.setup_profile(config["paths"]["profile_sh_path"])
 
+        #tmp = Path.home() / ".exegol_history" / "config.toml"
+        #with open(tmp, "rb") as config_file:
+            #config_data = tomllib.load(config_file)
+            #config = ConfigTest(config_data)
+            #print(config.keybindings.copy_username_clipboard)
+
         if need_db:
             engine = AppConfig.setup_db(db_path, db_key_path)
 
-            # Synchronise all connectors
+            # Synchronise enabled connectors automatically
             if args.command != SYNC_SUBCOMMAND:
-                null_console = Console(file=open(os.devnull, "w"))
-                sync_objects(engine, config, null_console)
+                try:
+                    sync_objects(engine, config, True, True)
+                except Exception:
+                    pass
 
     try:
         # CLI
@@ -92,7 +102,7 @@ def main():
         elif args.command == DELETE_SUBCOMMAND:
             delete_objects(args, engine, console)
         elif args.command == SYNC_SUBCOMMAND:
-            sync_objects(engine, config, console, True)
+            cli_sync_objects(engine, config, console, True, True)
 
         # TUI
         elif args.command == SET_SUBCOMMAND:

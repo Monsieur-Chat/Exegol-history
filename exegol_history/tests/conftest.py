@@ -45,6 +45,10 @@ def load_mock_config() -> dict[str, Any]:
     else:
         mock_config["paths"]["profile_sh_path"] = TEST_PROFILE_SH
 
+    for connector in mock_config["sync"]:
+        mock_config["sync"][connector]["auto"] = False
+        mock_config["sync"][connector]["enabled"] = False
+
     return mock_config
 
 

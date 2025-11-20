@@ -79,6 +79,7 @@ HOSTS_TEST_VALUE = [
     Host(4, ip=IP_TEST_VALUE + "3"),
 ]
 
+# Paths
 TEST_ARTIFACTS_PATH = Path(__file__).parent / "artifacts"
 TEST_HOSTS_CSV_COMMA = TEST_ARTIFACTS_PATH / "hosts_comma.csv"
 TEST_HOSTS_CSV_COLON = TEST_ARTIFACTS_PATH / "hosts_colon.csv"
@@ -99,6 +100,8 @@ PSYCOPG_PATCH_PATH = "exegol_history.connectors.metasploit.metasploit_sync.psyco
 GET_PG_DB_INFOS_PATCH_PATH = (
     "exegol_history.connectors.metasploit.metasploit_sync.get_msf_postgres_db_infos"
 )
+
+OBJECT_NUMBER_VALUE = 2000
 
 
 async def select_input_and_enter_text(pilot, input_id, input_text):

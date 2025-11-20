@@ -22,11 +22,11 @@ quit = "ctrl+c"
 
 [sync.netexec]
 enabled = true
-auto = false
+workspace_path = "~/.nxc/workspaces/"
 
 [sync.metasploit]
 enabled = false
-auto = false
+db_config_path = "/var/lib/postgresql/.msf4/database.yml"
 
 [theme]
 primary = "#0178D4"

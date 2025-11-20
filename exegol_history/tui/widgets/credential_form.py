@@ -67,13 +67,7 @@ class CredentialForm(Container):
             ).value
             hash = self.screen.query_one(f"#{ID_HASH_INPUT}", BorderedInput).value
             domain = self.screen.query_one(f"#{ID_DOMAIN_INPUT}", BorderedInput).value
-            # self.credential = Credential(
-            #    credential_id=self.credential.credential_id if self.credential else None,
-            #    username=username if username else None,
-            #    password=password if password else None,
-            #    hash=hash if hash else None,
-            #    domain=domain if domain else None,
-            # )
+
             tmp = {
                 "credential_id": self.credential.credential_id
                 if self.credential

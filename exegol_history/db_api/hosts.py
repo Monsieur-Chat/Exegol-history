@@ -59,6 +59,9 @@ class Host(Base):
 
 
 def add_hosts(engine: Engine, hosts: list[dict]):
+    if not hosts:
+        return
+
     with Session(engine, expire_on_commit=False) as session:
         query = insert(Host).values(hosts)
         query = query.on_conflict_do_update(
@@ -101,23 +104,6 @@ def delete_hosts(engine: Engine, host_ids: list[str] = list()):
 
 
 def edit_hosts(engine: Engine, hosts: list[Host]):
-    # with Session(engine, expire_on_commit=False) as session:
-    #    for host in hosts:
-    #        credential_to_modify = session.get(Host, host.host_id)
-    #
-    #        if not credential_to_modify:
-    #            raise RuntimeError(MESSAGE_ID_NOT_EXIST)
-    #
-    #        for attr in Host.__table__.columns.keys():
-    #            if attr == "host_id":
-    #                continue
-    #
-    #            value = getattr(host, attr, None)
-    #
-    #            if value:
-    #                setattr(credential_to_modify, attr, value)
-    #
-    #    session.commit()
     with Session(engine, expire_on_commit=False) as session:
         try:
             session.bulk_update_mappings(Host, hosts)

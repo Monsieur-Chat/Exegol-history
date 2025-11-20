@@ -72,6 +72,9 @@ class Credential(Base):
 
 
 def add_credentials(engine: Engine, credentials: list[dict]):
+    if not credentials:
+        return
+
     with Session(engine, expire_on_commit=False) as session:
         query = insert(Credential).values(credentials)
         query = query.on_conflict_do_update(

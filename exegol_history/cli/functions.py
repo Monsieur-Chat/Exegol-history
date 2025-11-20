@@ -9,8 +9,6 @@ from exegol_history.cli.utils import (
     write_credential_in_profile,
     write_host_in_profile,
 )
-from exegol_history.connectors.metasploit.metasploit_sync import MetasploitSyncer
-from exegol_history.connectors.netexec.netexec_sync import NetexecSyncer
 from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
@@ -31,6 +29,7 @@ from exegol_history.db_api.importing import (
     HostsImportFileType,
     import_objects,
 )
+from exegol_history.db_api.sync import sync_objects
 from exegol_history.db_api.utils import parse_ids
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.tui.db_hosts import DbHostsApp
@@ -203,22 +202,17 @@ def show_objects(console: Console):
         console.print("No environment variables are set.")
 
 
-def sync_objects(
+def cli_sync_objects(
     engine: Engine,
     config: dict[str, Any],
     console: Console,
-    bypass_auto_flag: bool = False,
+    sync_credentials: bool = False,
+    sync_hosts: bool = False,
 ):
-    for connector in config["sync"]:
-        if (
-            config["sync"][connector]["auto"] and config["sync"][connector]["enabled"]
-        ) or bypass_auto_flag:
-            if connector == "netexec":
-                syncer = NetexecSyncer(engine, console)
-                syncer.sync()
-            elif connector == "metasploit":
-                syncer = MetasploitSyncer(engine, console)
-                syncer.sync()
+    try:
+        sync_objects(engine, config, sync_credentials, sync_hosts)
+    except Exception as e:
+        console.print(e)
 
 
 def show_version(console: Console):

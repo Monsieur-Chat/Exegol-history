@@ -1,11 +1,9 @@
+from typing import Any
 from sqlalchemy import Engine
 import psycopg
 from psycopg.errors import UndefinedTable
-from exegol_history.cli.utils import console_error, console_success
-from exegol_history.db_api.creds import Credential, add_credentials
-from rich.console import Console
+from exegol_history.db_api.creds import Credential
 from exegol_history.connectors.metasploit.utils import (
-    MSF_DB_CONFIG_PATH,
     get_msf_postgres_db_infos,
     is_private_data_hash,
     MSF_DB_CREDENTIAL_QUERY,
@@ -14,17 +12,18 @@ from exegol_history.connectors.metasploit.utils import (
 
 
 class MetasploitSyncer:
-    def __init__(
-        self, engine: Engine, console: Console, config_path: str = MSF_DB_CONFIG_PATH
-    ):
+    CONNECTOR_NAME = "metasploit"
+
+    def __init__(self, engine: Engine, config: dict[str, Any]):
         (
             self.msf_db_name,
             self.msf_db_port,
             self.msf_db_username,
             self.msf_db_password,
-        ) = get_msf_postgres_db_infos(config_path)
+        ) = get_msf_postgres_db_infos(
+            config["sync"][MetasploitSyncer.CONNECTOR_NAME]["db_config_path"]
+        )
         self.engine = engine
-        self.console = console
 
     def sync(self):
         try:
@@ -61,13 +60,7 @@ class MetasploitSyncer:
                     )
                 )
 
-            add_credentials(self.engine, credentials)
             conn.close()
+            return (credentials, [])
         except Exception as e:
-            self.console.print(
-                console_error(f"Error synchronizing Metasploit credentials: {e}")
-            )
-
-        self.console.print(
-            console_success(f"{len(credentials)} Metasploit credentials synchronized !")
-        )
+            raise (e)
