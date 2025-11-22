@@ -6,6 +6,7 @@ from pathlib import Path
 
 from sqlalchemy import Engine
 from exegol_history.config.config import AppConfig
+from exegol_history.connectors.netexec.netexec_sync import NetexecSyncer
 from exegol_history.db_api.creds import Credential
 from exegol_history.db_api.hosts import Host
 from exegol_history.tests.common import (
@@ -22,6 +23,7 @@ TEST_DB_NAME = "test.sqlite3"
 
 TEST_ARTIFACTS_PATH = Path("exegol_history") / "tests" / "artifacts"
 TEST_DB_PATH = TEST_ARTIFACTS_PATH / TEST_DB_NAME
+TEST_NETEXEC_PATH = TEST_ARTIFACTS_PATH / "netexec_artifacts"
 TEST_CONFIG_PATH = TEST_ARTIFACTS_PATH / AppConfig.CONFIG_FILENAME
 TEST_PROFILE_SH = TEST_ARTIFACTS_PATH / "profile.sh"
 TEST_PROFILE_PS1 = TEST_ARTIFACTS_PATH / "profile.ps1"
@@ -44,6 +46,9 @@ def load_mock_config() -> AppConfig:
 
     for connector in mock_config.sync:
         connector.enabled = False
+
+        if connector.CONNECTOR_NAME == NetexecSyncer.CONNECTOR_NAME:
+            connector.workspace_path = TEST_NETEXEC_PATH
 
     return mock_config
 

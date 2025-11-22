@@ -72,13 +72,15 @@ class NetexecSyncer:
     def sync(self) -> tuple[list[dict], list[dict]]:
         if self.workspaces_dir.exists():
             for workspace in self.workspaces_dir.iterdir():
-                workspace_path = self.workspaces_dir / workspace
-                if workspace_path.is_dir():
-                    return self.process_workspace(workspace_path)
+                #workspace_path = self.workspaces_dir / workspace
+                if workspace.is_dir():
+                    return self.process_workspace(workspace)
         else:
             raise (
                 RuntimeError(f"No workspaces directory found at {self.workspaces_dir}")
             )
+
+        return ([], [])
 
     def process_workspace(self, workspace_path: Path) -> tuple[list[dict], list[dict]]:
         credentials = []
