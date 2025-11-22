@@ -1,19 +1,19 @@
 import sys
 import importlib
+from sqlalchemy import Engine
 from textual.app import App, ComposeResult, SystemCommand
 from textual.keys import Keys
+from textual.theme import Theme
 from textual.screen import Screen
 from textual.widgets.data_table import RowDoesNotExist
 from textual.widgets import Footer, Header, Input, Rule
 from textual.binding import Binding
 from textual import events
-from pykeepass import PyKeePass
-from typing import Any
 from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
-    delete_credential,
+    delete_credentials,
     edit_credentials,
     get_credentials,
 )
@@ -42,54 +42,54 @@ TOOLTIP_EXPORT_CREDENTIAL = "Export credentials"
 class DbCredsApp(App):
     # We can't reuse the config passed in the constructor
     # because Textualize doesn't support fully dynamic bindings
-    config = AppConfig.load_config()
+    config = AppConfig()
     BINDINGS = [
         Binding(
             Keys.F1,
             "copy_username_clipboard",
-            f"{config['theme']['clipboard_icon']} username",
+            f"{config.theme.clipboard_icon} username",
             id="copy_username_clipboard",
             tooltip=TOOLTIP_COPY_USERNAME,
         ),
         Binding(
             Keys.F2,
             "copy_password_clipboard",
-            f"{config['theme']['clipboard_icon']} password",
+            f"{config.theme.clipboard_icon} password",
             id="copy_password_clipboard",
             tooltip=TOOLTIP_COPY_PASSWORD,
         ),
         Binding(
             Keys.F3,
             "copy_hash_clipboard",
-            f"{config['theme']['clipboard_icon']} hash",
+            f"{config.theme.clipboard_icon} hash",
             id="copy_hash_clipboard",
             tooltip=TOOLTIP_COPY_HASH,
         ),
         Binding(
             Keys.F4,
             "add_credential",
-            f"{config['theme']['add_icon']} credential",
+            f"{config.theme.add_icon} credential",
             id="add_credential",
             tooltip=TOOLTIP_ADD_CREDENTIAL,
         ),
         Binding(
             Keys.F5,
             "delete_credential",
-            f"{config['theme']['delete_icon']} credential",
+            f"{config.theme.delete_icon} credential",
             id="delete_credential",
             tooltip=TOOLTIP_DELETE_CREDENTIAL,
         ),
         Binding(
             Keys.F6,
             "edit_credential",
-            f"{config['theme']['edit_icon']} credential",
+            f"{config.theme.edit_icon} credential",
             id="edit_credential",
             tooltip=TOOLTIP_EDIT_CREDENTIAL,
         ),
         Binding(
             Keys.F7,
             "export_credential",
-            f"{config['theme']['export_icon']} credential",
+            f"{config.theme.export_icon} credential",
             id="export_credential",
             tooltip=TOOLTIP_EXPORT_CREDENTIAL,
         ),
@@ -97,7 +97,7 @@ class DbCredsApp(App):
     ]
 
     def __init__(
-        self, config: dict[str, Any], kp: PyKeePass, show_add_screen: bool = False
+        self, config: AppConfig, engine: Engine, show_add_screen: bool = False
     ):
         self.CSS_PATH = "css/general.tcss"
         self.TITLE = (
@@ -107,7 +107,21 @@ class DbCredsApp(App):
 
         self.config = config
         self.refresh_bindings()
-        self.kp = kp
+        self.engine = engine
+        self.custom_theme = Theme(
+            name="custom",
+            primary=config.theme.primary,
+            secondary=config.theme.secondary,
+            accent=config.theme.accent,
+            foreground=config.theme.foreground,
+            background=config.theme.background,
+            success=config.theme.success,
+            warning=config.theme.warning,
+            error=config.theme.error,
+            surface=config.theme.surface,
+            panel=config.theme.panel,
+            dark=config.theme.dark,
+        )
         self.show_add_screen = show_add_screen
 
     def compose(self) -> ComposeResult:
@@ -118,22 +132,26 @@ class DbCredsApp(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        tmp = get_credentials(self.kp)
+        self.register_theme(self.custom_theme)
+        self.theme = "custom"
+        tmp = get_credentials(self.engine)
 
         _tmp = Credential()
+        delattr(_tmp, "_sa_instance_state")
 
         table = self.screen.query_one(ObjectsDataTable)
         table.add_columns(*_tmp.__dict__.keys())
         table.add_rows(tmp)
-        table.zebra_stripes = True
-        table.cursor_type = "row"
         self.original_data = tmp
 
         # Apply keybindings from config
-        self.set_keymap(self.config["keybindings"])
+        self.set_keymap(self.config.keybindings)
 
         if self.show_add_screen:
-            self.push_screen(AddObjectScreen(), self.check_added_creds)
+            self.push_screen(
+                AddObjectScreen(domains=set(table.get_column_at(4))),
+                self.check_added_creds,
+            )
 
     def get_system_commands(self, screen: Screen):
         yield SystemCommand(
@@ -162,7 +180,7 @@ class DbCredsApp(App):
 
     def update_table(self) -> None:
         # Refresh the table
-        tmp = get_credentials(self.kp)
+        tmp = get_credentials(self.engine)
 
         table = self.screen.query_one(ObjectsDataTable)
         table.clear()
@@ -175,7 +193,10 @@ class DbCredsApp(App):
                 table = self.screen.query_one(ObjectsDataTable)
                 selected_row = table.cursor_row
                 row_data = table.get_row_at(selected_row)
-                select_credential = get_credentials(self.kp, id=row_data[0])[0]
+                select_credential = get_credentials(
+                    self.engine, credential_id=row_data[0]
+                )[0]
+
                 self.exit(select_credential)
             except Exception:
                 pass
@@ -239,15 +260,19 @@ class DbCredsApp(App):
 
         sys.exit(0)
 
-    def check_added_creds(self, parsed_creds: list[Credential]) -> None:
-        add_credentials(self.kp, parsed_creds)
+    def check_added_creds(self, credential: list[dict]) -> None:
+        add_credentials(self.engine, credential)
         self.update_table()
 
         if self.show_add_screen:
             sys.exit(0)
 
     def action_add_credential(self) -> None:
-        self.push_screen(AddObjectScreen(), self.check_added_creds)
+        table = self.screen.query_one(ObjectsDataTable)
+        self.push_screen(
+            AddObjectScreen(domains=set(filter(None, table.get_column_at(4)))),
+            self.check_added_creds,
+        )
 
     def check_export_credential(self, result: tuple) -> None:
         if result:
@@ -256,7 +281,7 @@ class DbCredsApp(App):
 
             if export_path:
                 try:
-                    exported = export_objects(format, get_credentials(self.kp))
+                    exported = export_objects(format, get_credentials(self.engine))
 
                     # Reference: https://docs.python.org/3/library/csv.html#id4
                     with open(export_path, "w", newline="") as f:
@@ -277,11 +302,10 @@ class DbCredsApp(App):
         def check_delete(result: list[int]) -> None:
             for id in result:
                 try:
-                    delete_credential(self.kp, id)
+                    delete_credentials(self.engine, [id])
                 except RuntimeError:
                     continue
 
-            self.kp.save()
             self.update_table()
 
         table = self.screen.query_one(ObjectsDataTable)
@@ -296,8 +320,8 @@ class DbCredsApp(App):
             pass
 
     def action_edit_credential(self) -> None:
-        def check_edit_creds(credentials: list[Credential]) -> None:
-            edit_credentials(self.kp, credentials)
+        def check_edit_creds(credential: Credential) -> None:
+            edit_credentials(self.engine, [credential])
 
             self.update_table()
 
@@ -306,9 +330,13 @@ class DbCredsApp(App):
 
         try:
             row_data = table.get_row_at(selected_row)
-            credential = get_credentials(self.kp, id=row_data[0])[0]
+            credential = get_credentials(self.engine, credential_id=row_data[0])[0]
             self.push_screen(
-                EditObjectScreen(AssetsType.Credentials, credential),
+                EditObjectScreen(
+                    AssetsType.Credentials,
+                    credential,
+                    domains=set(filter(None, table.get_column_at(4))),
+                ),
                 check_edit_creds,
             )
         except Exception:

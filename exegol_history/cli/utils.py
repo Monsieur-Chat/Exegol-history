@@ -2,7 +2,8 @@ import argparse
 import re
 import platform
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Dict, Union
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import Credential
 from exegol_history.db_api.hosts import Host
 
@@ -19,8 +20,8 @@ def check_delimiter(delimiter: str) -> str:
     return delimiter
 
 
-def write_host_in_profile(host: Host, config: dict[str, Any]):
-    profile_sh_path = config["paths"]["profile_sh_path"]
+def write_host_in_profile(host: Host, config: AppConfig):
+    profile_sh_path = config.paths.profile_sh_path
     variables_correspondance = {
         HOSTS_VARIABLES[0]: host.ip,
         HOSTS_VARIABLES[1]: host.ip,
@@ -34,8 +35,8 @@ def write_host_in_profile(host: Host, config: dict[str, Any]):
     parse_and_update(profile_sh_path, variables_correspondance)
 
 
-def write_credential_in_profile(credential: Credential, config: dict[str, Any]):
-    profile_sh_path = config["paths"]["profile_sh_path"]
+def write_credential_in_profile(credential: Credential, config: AppConfig):
+    profile_sh_path = config.paths.profile_sh_path
     variables_correspondance = {
         CREDS_VARIABLES[0]: credential.username,
         CREDS_VARIABLES[1]: credential.password,
@@ -82,3 +83,11 @@ def parse_and_update(
 
 def console_error(message: str):
     return f"[[bold red]![/bold red]] {message}"
+
+
+def console_success(message: str):
+    return f"[[bold green]+[/bold green]] {message}"
+
+
+def console_info(message: str):
+    return f"[[bold blue]*[/bold blue]] {message}"

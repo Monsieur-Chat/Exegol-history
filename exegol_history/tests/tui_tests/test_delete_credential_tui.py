@@ -1,20 +1,19 @@
 import pytest
+from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.db_api.creds import (
     Credential,
-    add_credential,
     add_credentials,
     get_credentials,
 )
 from common import (
-    CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP,
     USERNAME_TEST_VALUE,
     PASSWORD_TEST_VALUE,
     HASH_TEST_VALUE,
     DOMAIN_TEST_VALUE,
     select_input_and_enter_text,
 )
-from pykeepass import PyKeePass
 from exegol_history.tui.widgets.credential_form import (
     ID_CONFIRM_BUTTON,
     ID_DOMAIN_INPUT,
@@ -30,11 +29,10 @@ from exegol_history.tui.screens.delete_object import (
 
 
 @pytest.mark.asyncio
-async def test_delete_credential(open_keepass: PyKeePass, load_mock_config):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
-    delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
+async def test_delete_credential(engine: Engine, load_mock_config):
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
+    delete_credential_keybind = load_mock_config.keybindings["delete_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -43,20 +41,19 @@ async def test_delete_credential(open_keepass: PyKeePass, load_mock_config):
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [Credential(id="1", username=USERNAME_TEST_VALUE)]
+        assert get_credentials(engine) == [Credential(1, username=USERNAME_TEST_VALUE)]
 
         await pilot.press(delete_credential_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert len(get_credentials(kp)) == 0
+        assert len(get_credentials(engine)) == 0
 
 
 @pytest.mark.asyncio
-async def test_delete_credential_full(open_keepass: PyKeePass, load_mock_config):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
-    delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
+async def test_delete_credential_full(engine: Engine, load_mock_config: AppConfig):
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
+    delete_credential_keybind = load_mock_config.keybindings["delete_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -72,9 +69,9 @@ async def test_delete_credential_full(open_keepass: PyKeePass, load_mock_config)
         )
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert get_credentials(kp) == [
+        assert get_credentials(engine) == [
             Credential(
-                id="1",
+                1,
                 username=USERNAME_TEST_VALUE,
                 password=PASSWORD_TEST_VALUE,
                 hash=HASH_TEST_VALUE,
@@ -85,17 +82,26 @@ async def test_delete_credential_full(open_keepass: PyKeePass, load_mock_config)
         await pilot.press(delete_credential_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
 
-        assert len(get_credentials(kp)) == 0
+        assert len(get_credentials(engine)) == 0
 
 
 @pytest.mark.asyncio
-async def test_delete_credential_range(open_keepass: PyKeePass, load_mock_config):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
+async def test_delete_credential_range(
+    engine: Engine,
+    load_mock_config: AppConfig,
+    CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP: list[Credential],
+):
+    app = DbCredsApp(load_mock_config, engine)
+    delete_credential_keybind = load_mock_config.keybindings["delete_credential"]
 
-    add_credentials(kp, CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP)
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
+    add_credentials(
+        engine,
+        [
+            credential.as_dict()
+            for credential in CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
+        ],
+    )
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
 
     async with app.run_test() as pilot:
         await pilot.press(delete_credential_keybind)
@@ -108,7 +114,7 @@ async def test_delete_credential_range(open_keepass: PyKeePass, load_mock_config
         await pilot.click(f"#{ID_CONFIRM_RANGE_BUTTON}")
 
         assert (
-            get_credentials(kp)
+            get_credentials(engine)
             == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP[1:4]
             + CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP[9:16]
             + CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP[17:]
@@ -117,14 +123,21 @@ async def test_delete_credential_range(open_keepass: PyKeePass, load_mock_config
 
 @pytest.mark.asyncio
 async def test_delete_credential_range_with_invalid_id(
-    open_keepass: PyKeePass, load_mock_config
+    engine: Engine,
+    load_mock_config: AppConfig,
+    CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP: list[Credential],
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
+    app = DbCredsApp(load_mock_config, engine)
+    delete_credential_keybind = load_mock_config.keybindings["delete_credential"]
 
-    add_credentials(kp, CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP)
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
+    add_credentials(
+        engine,
+        [
+            credential.as_dict()
+            for credential in CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
+        ],
+    )
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
 
     async with app.run_test() as pilot:
         await pilot.press(delete_credential_keybind)
@@ -137,7 +150,7 @@ async def test_delete_credential_range_with_invalid_id(
         await pilot.click(f"#{ID_CONFIRM_RANGE_BUTTON}")
 
         assert (
-            get_credentials(kp)
+            get_credentials(engine)
             == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP[1:4]
             + CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP[9:16]
             + CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP[17:]
@@ -146,22 +159,20 @@ async def test_delete_credential_range_with_invalid_id(
 
 # Trying to delete an object when no object are present should not raise an exception
 @pytest.mark.asyncio
-async def test_delete_credential_empty(open_keepass: PyKeePass, load_mock_config):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
+async def test_delete_credential_empty(engine: Engine, load_mock_config: AppConfig):
+    app = DbCredsApp(load_mock_config, engine)
+    delete_credential_keybind = load_mock_config.keybindings["delete_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(delete_credential_keybind)
 
 
 @pytest.mark.asyncio
-async def test_delete_credential_issue_3(open_keepass: PyKeePass, load_mock_config):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    delete_credential_keybind = load_mock_config["keybindings"]["delete_credential"]
+async def test_delete_credential_issue_3(engine: Engine, load_mock_config: AppConfig):
+    app = DbCredsApp(load_mock_config, engine)
+    delete_credential_keybind = load_mock_config.keybindings["delete_credential"]
 
-    add_credential(kp, Credential())
+    add_credentials(engine, [Credential(username=USERNAME_TEST_VALUE).as_dict()])
 
     async with app.run_test() as pilot:
         await pilot.press(delete_credential_keybind)

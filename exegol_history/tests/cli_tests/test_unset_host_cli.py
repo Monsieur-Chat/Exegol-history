@@ -2,9 +2,9 @@ import subprocess
 import sys
 import pytest
 import types
-from typing import Any
 from exegol_history.cli.functions import HOSTS_SUBCOMMAND, unset_objects
 from exegol_history.cli.utils import HOSTS_VARIABLES, write_host_in_profile
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.hosts import Host
 from exegol_history.tests.common import (
     HOSTNAME_TEST_VALUE,
@@ -14,15 +14,15 @@ from exegol_history.tests.common import (
 
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
-def test_unset_host(load_mock_config: dict[str, Any]):
-    host = Host("1", IP_TEST_VALUE, HOSTNAME_TEST_VALUE, ROLE_TEST_VALUE)
+def test_unset_host(load_mock_config: AppConfig):
+    host = Host(1, ip=IP_TEST_VALUE, hostname=HOSTNAME_TEST_VALUE, role=ROLE_TEST_VALUE)
 
     write_host_in_profile(host, load_mock_config)
     command_output = subprocess.run(
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -39,7 +39,7 @@ def test_unset_host(load_mock_config: dict[str, Any]):
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]}",
         ],
         stdout=subprocess.PIPE,
     )

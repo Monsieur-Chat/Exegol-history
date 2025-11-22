@@ -176,7 +176,7 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 # Test artifacts
-exegol_history/tests/artifacts/test.kdbx
+exegol_history/tests/artifacts/test.sqlite3
 exegol_history/tests/artifacts/test.key
 exegol_history/tests/artifacts/profile.sh
 exegol_history/tests/artifacts/profile.ps1

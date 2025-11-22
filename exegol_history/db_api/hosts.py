@@ -1,112 +1,112 @@
-from pykeepass import PyKeePass
+from sqlalchemy.orm import Mapped, mapped_column, Session
+from sqlalchemy import select, UniqueConstraint, Engine
+from exegol_history.db_api.base import Base
 from exegol_history.db_api.utils import MESSAGE_ID_NOT_EXIST
+from sqlalchemy.dialects.sqlite import insert
 
 
-class Host:
-    GROUP_NAME = "Hosts"
-    EXEGOL_DB_ROLE_PROPERTY = "role"
-    EXEGOL_DB_HOSTNAME_PROPERTY = "hostname"
-    HEADERS = ["ip", "hostname", "role"]
+class Host(Base):
+    __tablename__ = "hosts"
+    __table_args__ = (UniqueConstraint("ip", "hostname"),)
 
-    def __init__(self, id: str = "", ip: str = "", hostname: str = "", role: str = ""):
-        self.id = id
+    host_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    ip: Mapped[str] = mapped_column(nullable=True)
+    hostname: Mapped[str] = mapped_column(nullable=True)
+    role: Mapped[str] = mapped_column(nullable=True)
+
+    def __init__(
+        self,
+        host_id: int = None,
+        ip: str = None,
+        hostname: str = None,
+        role: str = None,
+    ):
+        self.host_id = host_id
         self.ip = ip
         self.hostname = hostname
         self.role = role
-        # By adding attributes, you must algo update Credential.HEADERS to support import / export CSV operations
-
-    def __iter__(self):
-        return iter([self.id, self.ip, self.hostname, self.role])
-
-    # Convert a Keepass entry into a Host object
-    @staticmethod
-    def host_from_entry(entry):
-        return Host(
-            entry.title if entry.title else "",
-            entry.username if entry.username else "",
-            entry.get_custom_property(Host.EXEGOL_DB_HOSTNAME_PROPERTY)
-            if entry.get_custom_property(Host.EXEGOL_DB_HOSTNAME_PROPERTY)
-            else "",
-            entry.get_custom_property(Host.EXEGOL_DB_ROLE_PROPERTY)
-            if entry.get_custom_property(Host.EXEGOL_DB_ROLE_PROPERTY)
-            else "",
-        )
 
     def __eq__(self, value):
         return (
-            (self.id == value.id)
+            (self.host_id == value.host_id)
             and (self.ip == value.ip)
             and (self.hostname == value.hostname)
             and (self.role == value.role)
         )
 
+    # Reference: https://stackoverflow.com/questions/5022066/how-to-serialize-sqlalchemy-result-to-json
+    def as_dict(self):
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
 
-def get_hosts(kp: PyKeePass, id: str = None) -> list[Host]:
-    group = kp.find_groups(name=Host.GROUP_NAME, first=True)
-    entries = kp.find_entries(title=id, recursive=True, group=group)
+    def __repr__(self) -> str:
+        return f"Host(host_id={self.host_id}, ip={self.ip}, hostname={self.hostname}, role={self.role})"
 
-    return [Host.host_from_entry(entry) for entry in entries]
+    def __iter__(self):
+        return iter([self.host_id, self.ip, self.hostname, self.role])
 
-
-def get_new_host_id(kp: PyKeePass) -> str:
-    hosts = get_hosts(kp)
-
-    return str(int(hosts[-1].id) + 1) if hosts else "1"
-
-
-def add_hosts(kp: PyKeePass, hosts: list[Host]):
-    for host in hosts:
-        add_host(kp, host)
-
-    kp.save()
-
-
-def add_host(kp: PyKeePass, host: Host):
-    id = get_new_host_id(kp)
-    host.id = id
-
-    group = kp.find_groups(name=Host.GROUP_NAME, first=True)
-    entry = kp.add_entry(group, id, host.ip, "")
-    entry.set_custom_property(
-        Host.EXEGOL_DB_HOSTNAME_PROPERTY, host.hostname, protect=True
-    )
-    entry.set_custom_property(Host.EXEGOL_DB_ROLE_PROPERTY, host.role, protect=True)
+    @staticmethod
+    def dict(
+        host_id: int = None, ip: str = None, hostname: str = None, role: str = None
+    ) -> dict:
+        return {
+            "host_id": host_id,
+            "ip": ip,
+            "hostname": hostname,
+            "role": role,
+        }
 
 
-def delete_hosts(kp: PyKeePass, ids: list[str] = list()):
-    for id in ids:
-        delete_host(kp, id)
+def add_hosts(engine: Engine, hosts: list[dict]):
+    if not hosts:
+        return
 
-    kp.save()
-
-
-def delete_host(kp: PyKeePass, id: str):
-    group = kp.find_groups(name=Host.GROUP_NAME, first=True)
-    entry = kp.find_entries(title=id, first=True, group=group)
-
-    if entry:
-        kp.delete_entry(entry)
-    else:
-        raise RuntimeError(MESSAGE_ID_NOT_EXIST)
-
-
-def edit_hosts(kp: PyKeePass, hosts: list[Host]):
-    for host in hosts:
-        edit_host(kp, host)
-
-    kp.save()
-
-
-def edit_host(kp: PyKeePass, host: Host):
-    group = kp.find_groups(name=Host.GROUP_NAME, first=True)
-    entry = kp.find_entries(title=host.id, first=True, group=group)
-
-    if entry:
-        entry.title = host.id
-        entry.username = host.ip
-        entry.set_custom_property(
-            Host.EXEGOL_DB_HOSTNAME_PROPERTY, host.hostname, protect=True
+    with Session(engine) as session:
+        query = insert(Host).values(hosts)
+        query = query.on_conflict_do_update(
+            index_elements=["ip", "hostname"],
+            set_={
+                "ip": query.excluded.ip,
+                "hostname": query.excluded.hostname,
+                "role": query.excluded.role,
+            },
         )
-        entry.set_custom_property(Host.EXEGOL_DB_ROLE_PROPERTY, host.role, protect=True)
+        session.execute(query)
+        session.commit()
+
+
+def get_hosts(engine: Engine, host_id: str = None) -> list[Host]:
+    hosts = []
+
+    if host_id:
+        query = select(Host).where(Host.host_id == host_id)
     else:
+        query = select(Host)
+
+    with Session(engine) as session:
+        for host in session.scalars(query):
+            session.expunge(host)
+            hosts.append(host)
+
+        return hosts
+
+
+def delete_hosts(engine: Engine, host_ids: list[str] = list()):
+    with Session(engine) as session:
+        query = Host.__table__.delete().where(Host.host_id.in_(host_ids))
+        result = session.execute(query)
+
+        session.commit()
+
+    if result.rowcount <= 0:
         raise RuntimeError(MESSAGE_ID_NOT_EXIST)
+
+
+def edit_hosts(engine: Engine, hosts: list[Host]):
+    with Session(engine) as session:
+        try:
+            session.bulk_update_mappings(Host, hosts)
+            session.commit()
+        except Exception:
+            raise RuntimeError(MESSAGE_ID_NOT_EXIST)

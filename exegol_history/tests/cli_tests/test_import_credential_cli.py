@@ -1,6 +1,6 @@
 import tempfile
 import pytest
-from pykeepass import PyKeePass
+from sqlalchemy import Engine
 from exegol_history.cli.arguments import parse_arguments
 from exegol_history.cli.functions import (
     CREDS_SUBCOMMAND,
@@ -12,7 +12,6 @@ from exegol_history.db_api.importing import CredsImportFileType
 from exegol_history.tests.common import (
     CREDENTIALS_TEST_VALUE,
     CREDENTIALS_TEST_VALUE_GOAD_PYPYKATZ,
-    CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP,
     PASSWORD_TEST_VALUE,
     TEST_CREDS_CSV_COLON,
     TEST_CREDS_CSV_COMMA,
@@ -26,58 +25,50 @@ from exegol_history.tests.common import (
 )
 
 
-def test_import_credential_csv(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_import_credential_csv(engine: Engine):
     # Comma
     command_line = f"{IMPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name} -f {TEST_CREDS_CSV_COMMA}".split()
     args = parse_arguments().parse_args(command_line)
 
-    cli_import_objects(args, kp)
+    cli_import_objects(args, engine)
 
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE
 
-    delete_all_entries(kp)
+    delete_all_entries(engine)
 
     # Colon
     command_line = f"{IMPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name} -f {TEST_CREDS_CSV_COLON}".split()
     args = parse_arguments().parse_args(command_line)
 
-    cli_import_objects(args, kp)
+    cli_import_objects(args, engine)
 
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE
 
 
-def test_import_credential_json(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_import_credential_json(engine: Engine):
     command_line = f"{IMPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.JSON.name} -f {TEST_CREDS_JSON}".split()
     args = parse_arguments().parse_args(command_line)
 
-    cli_import_objects(args, kp)
+    cli_import_objects(args, engine)
 
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE
 
 
-def test_import_credential_kdbx(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_import_credential_kdbx(engine: Engine):
     command_line = f"{IMPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.KDBX.name} -f {TEST_CREDS_KDBX} --kdbx-password {PASSWORD_TEST_VALUE} --kdbx-keyfile {TEST_CREDS_KDBX_KEYFILE}".split()
     args = parse_arguments().parse_args(command_line)
 
-    cli_import_objects(args, kp)
+    cli_import_objects(args, engine)
 
-    assert get_credentials(kp) == [
-        Credential("1", username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE),
+    assert get_credentials(engine) == [
+        Credential(1, username=USERNAME_TEST_VALUE, password=PASSWORD_TEST_VALUE),
         Credential(
-            "2", username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
+            2, username=USERNAME_TEST_VALUE + "2", password=PASSWORD_TEST_VALUE + "2"
         ),
     ]
 
 
-def test_import_credential_pypykatz_json(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_import_credential_pypykatz_json(engine: Engine):
     # Write the exported CSV into a file
     temp_csv = tempfile.NamedTemporaryFile("w", delete=False)
     temp_csv.write("test,test2,test3\ntest")
@@ -85,24 +76,22 @@ def test_import_credential_pypykatz_json(open_keepass: PyKeePass):
 
     command_line = f"{IMPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.PYPYKATZ_JSON.name} -f {TEST_CREDS_PYPYKATZ_JSON}".split()
     args = parse_arguments().parse_args(command_line)
-    cli_import_objects(args, kp)
+    cli_import_objects(args, engine)
 
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE_GOAD_PYPYKATZ
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_GOAD_PYPYKATZ
 
 
-def test_import_credential_secretsdump(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_import_credential_secretsdump(
+    engine: Engine, CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP: list[Credential]
+):
     command_line = f"{IMPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.SECRETSDUMP.name} -f {TEST_CREDS_SECRETSDUMP}".split()
     args = parse_arguments().parse_args(command_line)
-    cli_import_objects(args, kp)
+    cli_import_objects(args, engine)
 
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_GOAD_SECRETSDUMP
 
 
-def test_import_credential_bad_format(open_keepass: PyKeePass):
-    kp = open_keepass
-
+def test_import_credential_bad_format(engine: Engine):
     # Write the exported CSV into a file
     temp_csv = tempfile.NamedTemporaryFile("w", delete=False)
     temp_csv.write("test,test2,test3\ntest")
@@ -111,7 +100,7 @@ def test_import_credential_bad_format(open_keepass: PyKeePass):
     command_line = f"{IMPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name} -f {temp_csv.name}".split()
     args = parse_arguments().parse_args(command_line)
 
-    with pytest.raises(TypeError):
-        cli_import_objects(args, kp)
+    with pytest.raises(Exception):
+        cli_import_objects(args, engine)
 
     temp_csv.close()

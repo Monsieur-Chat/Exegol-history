@@ -1,5 +1,7 @@
+from sqlalchemy import Engine
 from textual.keys import Keys
 import pytest
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.importing import CredsImportFileType
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.db_api.creds import Credential, get_credentials
@@ -20,8 +22,6 @@ from common import (
     select_input_and_enter_text,
     select_select_index,
 )
-from pykeepass import PyKeePass
-from typing import Any
 from exegol_history.tui.widgets.credential_form import ID_CONFIRM_BUTTON
 from exegol_history.tui.widgets.import_file import (
     ID_CONFIRM_IMPORT_BUTTON,
@@ -36,11 +36,10 @@ from exegol_history.tui.screens.open_file import ID_PATH_INPUT
 
 @pytest.mark.asyncio
 async def test_import_credential_csv_textarea(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(add_credential_keybind)
@@ -60,24 +59,23 @@ async def test_import_credential_csv_textarea(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-    assert get_credentials(kp) == [
+    assert get_credentials(engine) == [
         Credential(
-            "1",
-            USERNAME_TEST_VALUE,
-            PASSWORD_TEST_VALUE,
-            HASH_TEST_VALUE,
-            DOMAIN_TEST_VALUE,
+            1,
+            username=USERNAME_TEST_VALUE,
+            password=PASSWORD_TEST_VALUE,
+            hash=HASH_TEST_VALUE,
+            domain=DOMAIN_TEST_VALUE,
         )
     ]
 
 
 @pytest.mark.asyncio
 async def test_import_credential_import_csv_file(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         # Comma
@@ -99,16 +97,15 @@ async def test_import_credential_import_csv_file(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-        assert get_credentials(kp) == CREDENTIALS_TEST_VALUE
+        assert get_credentials(engine) == CREDENTIALS_TEST_VALUE
 
 
 @pytest.mark.asyncio
 async def test_import_credential_json_textarea(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(add_credential_keybind)
@@ -128,24 +125,23 @@ async def test_import_credential_json_textarea(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-    assert get_credentials(kp) == [
+    assert get_credentials(engine) == [
         Credential(
-            "1",
-            USERNAME_TEST_VALUE,
-            PASSWORD_TEST_VALUE,
-            HASH_TEST_VALUE,
-            DOMAIN_TEST_VALUE,
+            1,
+            username=USERNAME_TEST_VALUE,
+            password=PASSWORD_TEST_VALUE,
+            hash=HASH_TEST_VALUE,
+            domain=DOMAIN_TEST_VALUE,
         )
     ]
 
 
 @pytest.mark.asyncio
 async def test_import_credential_import_json_file(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(add_credential_keybind)
@@ -163,16 +159,15 @@ async def test_import_credential_import_json_file(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-        assert get_credentials(kp) == CREDENTIALS_TEST_VALUE
+        assert get_credentials(engine) == CREDENTIALS_TEST_VALUE
 
 
 @pytest.mark.asyncio
 async def test_import_credential_pypykatz_json(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(add_credential_keybind)
@@ -193,16 +188,13 @@ async def test_import_credential_pypykatz_json(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE_GOAD_PYPYKATZ
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_GOAD_PYPYKATZ
 
 
 @pytest.mark.asyncio
-async def test_import_credential_kdbx(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
-):
-    kp = open_keepass
-    app = DbCredsApp(load_mock_config, kp)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+async def test_import_credential_kdbx(engine: Engine, load_mock_config: AppConfig):
+    app = DbCredsApp(load_mock_config, engine)
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(add_credential_keybind)
@@ -229,4 +221,4 @@ async def test_import_credential_kdbx(
 
         await pilot.click(f"#{ID_CONFIRM_IMPORT_BUTTON}")
 
-    assert get_credentials(kp) == CREDENTIALS_TEST_VALUE_KDBX
+    assert get_credentials(engine) == CREDENTIALS_TEST_VALUE_KDBX

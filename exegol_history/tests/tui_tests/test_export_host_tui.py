@@ -1,15 +1,14 @@
 import tempfile
 import pytest
+from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.importing import HostsImportFileType
 from exegol_history.tui.db_hosts import DbHostsApp
-from exegol_history.db_api.hosts import add_hosts
+from exegol_history.db_api.hosts import Host, add_hosts
 from common import (
-    HOSTS_TEST_VALUE,
     TEST_HOSTS_JSON,
     select_select_index,
 )
-from pykeepass import PyKeePass
-from typing import Any
 from exegol_history.tui.screens.export_object import (
     ID_BROWSE_BUTTON,
     ID_EXPORT_TYPE_SELECT,
@@ -20,13 +19,12 @@ from exegol_history.tui.screens.open_file import ID_PATH_INPUT
 
 @pytest.mark.asyncio
 async def test_export_host_csv(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig, HOSTS_TEST_VALUE: list[Host]
 ):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
-    export_host_keybind = load_mock_config["keybindings"]["export_host"]
+    app = DbHostsApp(load_mock_config, engine)
+    export_host_keybind = load_mock_config.keybindings["export_host"]
     temp_export_csv = tempfile.NamedTemporaryFile(delete=False)
-    add_hosts(kp, HOSTS_TEST_VALUE)
+    add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(export_host_keybind)
@@ -46,13 +44,12 @@ async def test_export_host_csv(
 
 @pytest.mark.asyncio
 async def test_export_host_json(
-    open_keepass: PyKeePass, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig, HOSTS_TEST_VALUE: list[Host]
 ):
-    kp = open_keepass
-    app = DbHostsApp(load_mock_config, kp)
-    export_host_keybind = load_mock_config["keybindings"]["export_host"]
+    app = DbHostsApp(load_mock_config, engine)
+    export_host_keybind = load_mock_config.keybindings["export_host"]
     temp_export_json = tempfile.NamedTemporaryFile(delete=False)
-    add_hosts(kp, HOSTS_TEST_VALUE)
+    add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(export_host_keybind)

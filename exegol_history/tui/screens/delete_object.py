@@ -27,9 +27,7 @@ class DeleteObjectScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         container = Container()
-        container.border_title = (
-            f"{self.app.config['theme']['delete_icon']} Deleting objects"
-        )
+        container.border_title = f"{self.app.config.theme.delete_icon} Deleting objects"
 
         with container:
             with TabbedContent():

@@ -1,5 +1,6 @@
 import sys
 import importlib
+from sqlalchemy import Engine
 from textual.app import App, ComposeResult, SystemCommand
 from textual.keys import Keys
 from textual.theme import Theme
@@ -7,15 +8,12 @@ from textual.screen import Screen
 from textual.widgets.data_table import RowDoesNotExist
 from textual.widgets import Footer, Header, DataTable, Input, Rule
 from textual.binding import Binding
-from textual.containers import Vertical
-from pykeepass import PyKeePass
-from typing import Any
 from exegol_history.config.config import AppConfig
 from exegol_history.db_api.exporting import export_objects
 from exegol_history.db_api.hosts import (
     Host,
     add_hosts,
-    delete_host,
+    delete_hosts,
     edit_hosts,
     get_hosts,
 )
@@ -43,47 +41,47 @@ This is the main application displaying the hosts table and a search bar
 class DbHostsApp(App):
     # We can't reuse the config passed in the constructor
     # because Textualize doesn't support fully dynamic bindings
-    config = AppConfig.load_config()
+    config = AppConfig()
     BINDINGS = [
         Binding(
             Keys.F1,
             "copy_ip_clipboard",
-            f"{config['theme']['clipboard_icon']} IP",
+            f"{config.theme.clipboard_icon} IP",
             id="copy_ip_clipboard",
             tooltip="Copy the IP to the clipboard.",
         ),
         Binding(
             Keys.F2,
             "copy_hostname_clipboard",
-            f"{config['theme']['clipboard_icon']} hostname",
+            f"{config.theme.clipboard_icon} hostname",
             id="copy_hostname_clipboard",
             tooltip="Copy the hostname to the clipboard.",
         ),
         Binding(
             Keys.F3,
             "add_host",
-            f"{config['theme']['add_icon']} host",
+            f"{config.theme.add_icon} host",
             id="add_host",
             tooltip="Add a host.",
         ),
         Binding(
             Keys.F4,
             "delete_host",
-            f"{config['theme']['delete_icon']} host",
+            f"{config.theme.delete_icon} host",
             id="delete_host",
             tooltip="Delete a host.",
         ),
         Binding(
             Keys.F5,
             "edit_host",
-            f"{config['theme']['edit_icon']} host",
+            f"{config.theme.edit_icon} host",
             id="edit_host",
             tooltip="Edit a host.",
         ),
         Binding(
             Keys.F6,
             "export_host",
-            f"{config['theme']['export_icon']} host",
+            f"{config.theme.export_icon} host",
             id="export_host",
             tooltip=TOOLTIP_EXPORT_HOST,
         ),
@@ -91,7 +89,7 @@ class DbHostsApp(App):
     ]
 
     def __init__(
-        self, config: dict[str, Any], kp: PyKeePass, show_add_screen: bool = False
+        self, config: AppConfig, engine: Engine, show_add_screen: bool = False
     ):
         self.CSS_PATH = "css/general.tcss"
         self.TITLE = (
@@ -99,48 +97,45 @@ class DbHostsApp(App):
         )
         super().__init__()
         self.config = config
-        self.kp = kp
+        self.engine = engine
         self.custom_theme = Theme(
             name="custom",
-            primary=config["theme"].get("primary"),
-            secondary=config["theme"].get("secondary"),
-            accent=config["theme"].get("accent"),
-            foreground=config["theme"].get("foreground"),
-            background=config["theme"].get("background"),
-            success=config["theme"].get("success"),
-            warning=config["theme"].get("warning"),
-            error=config["theme"].get("error"),
-            surface=config["theme"].get("surface"),
-            panel=config["theme"].get("panel"),
-            dark=config["theme"].get("dark"),
+            primary=config.theme.primary,
+            secondary=config.theme.secondary,
+            accent=config.theme.accent,
+            foreground=config.theme.foreground,
+            background=config.theme.background,
+            success=config.theme.success,
+            warning=config.theme.warning,
+            error=config.theme.error,
+            surface=config.theme.surface,
+            panel=config.theme.panel,
+            dark=config.theme.dark,
         )
         self.show_add_screen = show_add_screen
 
     def compose(self) -> ComposeResult:
-        yield Vertical(
-            Header(),
-            ObjectsDataTable(),
-            Rule(line_style="heavy"),
-            Input(placeholder="🔍 Search...", id="search-bar"),
-            Footer(),
-        )
+        yield Header()
+        yield ObjectsDataTable()
+        yield Rule(line_style="heavy")
+        yield Input(placeholder="🔍 Search...", id="search-bar")
+        yield Footer()
 
     def on_mount(self) -> None:
         self.register_theme(self.custom_theme)
         self.theme = "custom"
-        tmp = get_hosts(self.kp)
+        tmp = get_hosts(self.engine)
 
         _tmp = Host()
+        delattr(_tmp, "_sa_instance_state")
 
         table = self.screen.query_one(ObjectsDataTable)
         table.add_columns(*_tmp.__dict__.keys())
         table.add_rows(tmp)
-        table.zebra_stripes = True
-        table.cursor_type = "row"
         self.original_data = tmp
 
         # Apply keybindings from config
-        self.set_keymap(self.config["keybindings"])
+        self.set_keymap(self.config.keybindings)
 
         if self.show_add_screen:
             self.push_screen(AddObjectScreen(AssetsType.Hosts), self.check_added_host)
@@ -159,7 +154,7 @@ class DbHostsApp(App):
 
     def update_table(self) -> None:
         # Refresh the table
-        tmp = get_hosts(self.kp)
+        tmp = get_hosts(self.engine)
 
         table = self.screen.query_one(DataTable)
         table.clear()
@@ -213,7 +208,7 @@ class DbHostsApp(App):
         sys.exit(0)
 
     def check_added_host(self, parsed_hosts: list[Host]) -> None:
-        add_hosts(self.kp, parsed_hosts)
+        add_hosts(self.engine, parsed_hosts)
 
         self.update_table()
 
@@ -227,7 +222,7 @@ class DbHostsApp(App):
 
             if export_path:
                 try:
-                    exported = export_objects(format, get_hosts(self.kp))
+                    exported = export_objects(format, get_hosts(self.engine))
 
                     # Reference: https://docs.python.org/3/library/csv.html#id4
                     with open(export_path, "w", newline="") as f:
@@ -249,11 +244,10 @@ class DbHostsApp(App):
         def check_delete(result: list[int]) -> None:
             for id in result:
                 try:
-                    delete_host(self.kp, id)
+                    delete_hosts(self.engine, [id])
                 except RuntimeError:
                     pass
 
-            self.kp.save()
             self.update_table()
 
         table = self.screen.query_one(ObjectsDataTable)
@@ -268,8 +262,8 @@ class DbHostsApp(App):
             pass
 
     def action_edit_host(self) -> None:
-        def check_edit_host(hosts: list[Host]) -> None:
-            edit_hosts(self.kp, hosts)
+        def check_edit_host(host: Host) -> None:
+            edit_hosts(self.engine, [host])
 
             self.update_table()
 
@@ -278,7 +272,7 @@ class DbHostsApp(App):
 
         try:
             row_data = table.get_row_at(selected_row)
-            host = get_hosts(self.kp, id=row_data[0])[0]
+            host = get_hosts(self.engine, host_id=row_data[0])[0]
             self.push_screen(
                 EditObjectScreen(AssetsType.Hosts, host),
                 check_edit_host,
