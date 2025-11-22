@@ -1,6 +1,6 @@
-from pathlib import Path
+# PYTHON_ARGCOMPLETE_OK
 import sys
-import tomllib
+import argcomplete
 from rich.console import Console
 from rich.traceback import install
 from exegol_history.cli.arguments import parse_arguments
@@ -27,7 +27,7 @@ from exegol_history.cli.functions import (
     unset_objects,
     VERSION_SUBCOMMAND,
 )
-from exegol_history.config.config import AppConfig, ConfigTest
+from exegol_history.config.config import AppConfig
 from sqlalchemy import exc
 
 
@@ -41,7 +41,9 @@ def main():
     need_db = False
     config = None
 
-    args = parse_arguments().parse_args()
+    parser = parse_arguments()
+    argcomplete.autocomplete(parser)
+    args = parser.parse_args()
 
     # Functions that needs the database (also need config)
     if args.command in [
@@ -60,22 +62,13 @@ def main():
         need_config = True
 
     if need_config:
-        config = AppConfig.load_config()
-        db_path = AppConfig.EXEGOL_HISTORY_HOME_FOLDER_NAME / config["paths"]["db_name"]
-        db_key_path = (
-            AppConfig.EXEGOL_HISTORY_HOME_FOLDER_NAME / config["paths"]["db_key_name"]
-        )
+        config = AppConfig()
+        AppConfig.setup_profile(config.paths.profile_sh_path)
 
-        AppConfig.setup_profile(config["paths"]["profile_sh_path"])
-
-        #tmp = Path.home() / ".exegol_history" / "config.toml"
-        #with open(tmp, "rb") as config_file:
-            #config_data = tomllib.load(config_file)
-            #config = ConfigTest(config_data)
-            #print(config.keybindings.copy_username_clipboard)
+        db_path = AppConfig.EXEGOL_HISTORY_HOME_FOLDER_NAME / config.paths.db_name
 
         if need_db:
-            engine = AppConfig.setup_db(db_path, db_key_path)
+            engine = AppConfig.setup_db(db_path)
 
             # Synchronise enabled connectors automatically
             if args.command != SYNC_SUBCOMMAND:

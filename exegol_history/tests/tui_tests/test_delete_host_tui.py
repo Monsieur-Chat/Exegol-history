@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
 from exegol_history.tui.db_hosts import DbHostsApp
 from exegol_history.db_api.hosts import Host, add_hosts, get_hosts
 from common import (
@@ -8,7 +9,6 @@ from common import (
     ROLE_TEST_VALUE,
     select_input_and_enter_text,
 )
-from typing import Any
 
 from exegol_history.tui.widgets.credential_form import ID_CONFIRM_BUTTON
 from exegol_history.tui.screens.delete_object import (
@@ -24,10 +24,10 @@ from textual.keys import Keys
 
 
 @pytest.mark.asyncio
-async def test_delete_host(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_delete_host(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
-    delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
+    delete_host_keybind = load_mock_config.keybindings["delete_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -43,10 +43,10 @@ async def test_delete_host(engine: Engine, load_mock_config: dict[str, Any]):
 
 
 @pytest.mark.asyncio
-async def test_delete_host_full(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_delete_host_full(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
-    delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
+    delete_host_keybind = load_mock_config.keybindings["delete_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -74,10 +74,10 @@ async def test_delete_host_full(engine: Engine, load_mock_config: dict[str, Any]
 
 @pytest.mark.asyncio
 async def test_delete_host_range(
-    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
+    engine: Engine, load_mock_config: AppConfig, HOSTS_TEST_VALUE: list[Host]
 ):
     app = DbHostsApp(load_mock_config, engine)
-    delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
+    delete_host_keybind = load_mock_config.keybindings["delete_host"]
 
     add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
     assert get_hosts(engine) == HOSTS_TEST_VALUE
@@ -97,10 +97,10 @@ async def test_delete_host_range(
 
 @pytest.mark.asyncio
 async def test_delete_host_range_with_invalid_id(
-    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
+    engine: Engine, load_mock_config: AppConfig, HOSTS_TEST_VALUE: list[Host]
 ):
     app = DbHostsApp(load_mock_config, engine)
-    delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
+    delete_host_keybind = load_mock_config.keybindings["delete_host"]
 
     add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
     assert get_hosts(engine) == HOSTS_TEST_VALUE
@@ -120,18 +120,18 @@ async def test_delete_host_range_with_invalid_id(
 
 # Trying to delete an object when no object are present should not raise an exception
 @pytest.mark.asyncio
-async def test_delete_host_empty(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_delete_host_empty(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
+    delete_host_keybind = load_mock_config.keybindings["delete_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(delete_host_keybind)
 
 
 @pytest.mark.asyncio
-async def test_delete_host_issue_3(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_delete_host_issue_3(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    delete_host_keybind = load_mock_config["keybindings"]["delete_host"]
+    delete_host_keybind = load_mock_config.keybindings["delete_host"]
 
     add_hosts(engine, [Host(ip=IP_TEST_VALUE).as_dict()])
 

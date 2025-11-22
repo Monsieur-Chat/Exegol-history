@@ -1,6 +1,7 @@
 import tempfile
 import pytest
 from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.importing import CredsImportFileType
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.db_api.creds import add_credentials
@@ -12,7 +13,6 @@ from common import (
     TEST_CREDS_JSON,
     select_select_index,
 )
-from typing import Any
 from exegol_history.tui.screens.export_object import (
     ID_BROWSE_BUTTON,
     ID_EXPORT_TYPE_SELECT,
@@ -22,9 +22,9 @@ from exegol_history.tui.screens.open_file import ID_PATH_INPUT
 
 
 @pytest.mark.asyncio
-async def test_export_credential_csv(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_export_credential_csv(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    export_credential_keybind = load_mock_config["keybindings"]["export_credential"]
+    export_credential_keybind = load_mock_config.keybindings["export_credential"]
     temp_export_csv = tempfile.NamedTemporaryFile(delete=False)
     add_credentials(engine, [CREDENTIAL1.as_dict(), CREDENTIAL2.as_dict()])
 
@@ -45,9 +45,9 @@ async def test_export_credential_csv(engine: Engine, load_mock_config: dict[str,
 
 
 @pytest.mark.asyncio
-async def test_export_credential_json(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_export_credential_json(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    export_credential_keybind = load_mock_config["keybindings"]["export_credential"]
+    export_credential_keybind = load_mock_config.keybindings["export_credential"]
     temp_export_json = tempfile.NamedTemporaryFile(delete=False)
     add_credentials(
         engine, [credential.as_dict() for credential in CREDENTIALS_TEST_VALUE]

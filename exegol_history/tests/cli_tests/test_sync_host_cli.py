@@ -1,15 +1,16 @@
 import time
-from typing import Any
 from unittest.mock import patch
 from exegol_history.cli.arguments import parse_arguments
 from exegol_history.cli.functions import SYNC_SUBCOMMAND, cli_sync_objects
 from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
 from exegol_history.connectors.netexec.netexec_sync import NetexecSyncer
 from exegol_history.db_api.hosts import Host, get_hosts
 from exegol_history.tests.common import (
     HOSTNAME_TEST_VALUE,
     IP_TEST_VALUE,
     SQLITE3_PATCH_PATH,
+    get_sync_connector_index,
 )
 
 
@@ -28,8 +29,10 @@ def generate_hosts(number_of_object: int = 2000):
 
 
 # Syncing should not take too much time for large amount of credentials
-def test_sync_host_netexec_big(engine: Engine, load_mock_config: dict[str, Any]):
-    load_mock_config["sync"][NetexecSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_host_netexec_big(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
     (hosts, hosts_row) = generate_hosts()
 
     start_time = time.time()
@@ -47,8 +50,10 @@ def test_sync_host_netexec_big(engine: Engine, load_mock_config: dict[str, Any])
     assert (end_time - start_time) < 1
 
 
-def test_sync_host_netexec(engine: Engine, load_mock_config: dict[str, Any]):
-    load_mock_config["sync"][NetexecSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_host_netexec(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
 
     with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
         mocksqlite3.connect().cursor().fetchall.return_value = [
@@ -64,8 +69,10 @@ def test_sync_host_netexec(engine: Engine, load_mock_config: dict[str, Any]):
     ]
 
 
-def test_sync_host_netexec_empty(engine: Engine, load_mock_config: dict[str, Any]):
-    load_mock_config["sync"][NetexecSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_host_netexec_empty(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
 
     with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
         mocksqlite3.connect().cursor().fetchall.return_value = []

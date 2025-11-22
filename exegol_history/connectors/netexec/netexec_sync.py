@@ -1,7 +1,6 @@
 import sqlite3
 from enum import Enum
 from pathlib import Path
-from typing import Any
 from sqlalchemy import Engine
 from exegol_history.db_api.creds import Credential
 from exegol_history.db_api.hosts import Host
@@ -19,13 +18,11 @@ class NetexecSyncer:
     def __init__(
         self,
         engine: Engine,
-        config: dict[str, Any],
+        workspace_path: str,
         sync_credentials: bool = False,
         sync_hosts: bool = False,
     ):
-        self.workspaces_dir = Path(
-            config["sync"][NetexecSyncer.CONNECTOR_NAME]["workspace_path"]
-        ).expanduser()
+        self.workspaces_dir = Path(workspace_path).expanduser()
         self.engine = engine
         self.sync_credentials = sync_credentials
         self.sync_hosts = sync_hosts

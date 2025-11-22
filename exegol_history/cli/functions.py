@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-from typing import Any
 from exegol_history.cli.utils import (
     CREDS_VARIABLES,
     HOSTS_VARIABLES,
@@ -9,6 +8,7 @@ from exegol_history.cli.utils import (
     write_credential_in_profile,
     write_host_in_profile,
 )
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
@@ -52,7 +52,7 @@ DELETE_SUBCOMMAND = "rm"
 SYNC_SUBCOMMAND = "sync"
 
 
-def add_object(args: argparse.Namespace, engine: Engine, config: dict[str, Any]):
+def add_object(args: argparse.Namespace, engine: Engine, config: AppConfig):
     if args.subcommand == CREDS_SUBCOMMAND:
         if any([args.username, args.password, args.hash, args.domain]):
             add_credentials(
@@ -68,7 +68,7 @@ def add_object(args: argparse.Namespace, engine: Engine, config: dict[str, Any])
             )
         else:  # If no arguments are given, display the TUI adding screen
             app = DbCredsApp(config, engine, show_add_screen=True)
-            app.run(inline=config["theme"]["inline"])
+            app.run(inline=config.theme.inline)
     elif args.subcommand == HOSTS_SUBCOMMAND:
         if any([args.ip, args.hostname, args.role]):
             add_hosts(
@@ -76,7 +76,7 @@ def add_object(args: argparse.Namespace, engine: Engine, config: dict[str, Any])
             )
         else:  # If no arguments are given, display the TUI adding screen
             app = DbHostsApp(config, engine, show_add_screen=True)
-            app.run(inline=config["theme"]["inline"])
+            app.run(inline=config.theme.inline)
 
 
 def delete_objects(args: argparse.Namespace, engine: Engine, console: Console):
@@ -160,12 +160,12 @@ def cli_import_objects(args: argparse.Namespace, engine: Engine):
 
 
 def set_objects(
-    args: argparse.Namespace, engine: Engine, config: dict[str, Any], console: Console
+    args: argparse.Namespace, engine: Engine, config: AppConfig, console: Console
 ):
     if args.subcommand == CREDS_SUBCOMMAND:
         try:
             app = DbCredsApp(config, engine)
-            row_data = app.run(inline=config["theme"]["inline"])
+            row_data = app.run(inline=config.theme.inline)
             if row_data is not None:
                 write_credential_in_profile(Credential(*row_data), config)
         except TypeError:  # It means the user left the TUI without choosing anything
@@ -174,14 +174,14 @@ def set_objects(
         app = DbHostsApp(config, engine)
 
         try:
-            row_data = app.run(inline=config["theme"]["inline"])
+            row_data = app.run(inline=config.theme.inline)
             if row_data is not None:
                 write_host_in_profile(Host(*row_data), config)
         except TypeError:  # It means the user left the TUI without choosing anything
             sys.exit(0)
 
 
-def unset_objects(args: argparse.Namespace, config: dict[str, Any]):
+def unset_objects(args: argparse.Namespace, config: AppConfig):
     if args.subcommand == CREDS_SUBCOMMAND:
         write_credential_in_profile(Credential(), config)
     elif args.subcommand == HOSTS_SUBCOMMAND:
@@ -204,7 +204,7 @@ def show_objects(console: Console):
 
 def cli_sync_objects(
     engine: Engine,
-    config: dict[str, Any],
+    config: AppConfig,
     console: Console,
     sync_credentials: bool = False,
     sync_hosts: bool = False,

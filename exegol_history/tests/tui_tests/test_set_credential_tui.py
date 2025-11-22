@@ -1,10 +1,10 @@
 from sqlalchemy import Engine
 from textual.keys import Keys
-from typing import Any
 import pytest
 import subprocess
 import sys
 from exegol_history.cli.utils import CREDS_VARIABLES, write_credential_in_profile
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import Credential
 from exegol_history.tui.db_creds import DbCredsApp
 from common import (
@@ -25,7 +25,7 @@ from exegol_history.tui.widgets.credential_form import (
 
 @pytest.mark.asyncio
 async def test_set_credential_without_selecting(
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
     app = DbCredsApp(load_mock_config, engine)
 
@@ -38,10 +38,10 @@ async def test_set_credential_without_selecting(
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
 async def test_set_credential_only_username_linux(
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -59,7 +59,7 @@ async def test_set_credential_only_username_linux(
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${CREDS_VARIABLES[0]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${CREDS_VARIABLES[0]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -71,7 +71,7 @@ async def test_set_credential_only_username_linux(
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -82,11 +82,9 @@ async def test_set_credential_only_username_linux(
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_credential_half_linux(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_set_credential_half_linux(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -107,7 +105,7 @@ async def test_set_credential_half_linux(
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -120,7 +118,7 @@ async def test_set_credential_half_linux(
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -131,11 +129,9 @@ async def test_set_credential_half_linux(
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_credential_full_linux(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_set_credential_full_linux(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -160,7 +156,7 @@ async def test_set_credential_full_linux(
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -175,10 +171,10 @@ async def test_set_credential_full_linux(
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
 async def test_set_credential_only_username_windows(
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -196,7 +192,7 @@ async def test_set_credential_only_username_windows(
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${CREDS_VARIABLES[0]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${CREDS_VARIABLES[0]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -208,7 +204,7 @@ async def test_set_credential_only_username_windows(
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -219,11 +215,9 @@ async def test_set_credential_only_username_windows(
 
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_credential_half_windows(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_set_credential_half_windows(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -244,7 +238,7 @@ async def test_set_credential_half_windows(
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -257,7 +251,7 @@ async def test_set_credential_half_windows(
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -268,11 +262,9 @@ async def test_set_credential_half_windows(
 
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_credential_full_windows(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_set_credential_full_windows(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -297,7 +289,7 @@ async def test_set_credential_full_windows(
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]} }}",
         ],
         stdout=subprocess.PIPE,
     )

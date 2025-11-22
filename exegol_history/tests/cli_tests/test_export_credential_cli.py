@@ -171,14 +171,13 @@ def test_export_import_credential_json(
     assert get_credentials(engine) == TEST_CREDENTIAL2
 
 
-# def test_export_credential_empty(engine: Engine, TEST_CREDENTIAL2: list[Credential]):
-#    console = Console()
-#
-#    command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name}".split()
-#    args = parse_arguments().parse_args(command_line)
-#    cli_export_objects(args, engine, console)
-#
-#    command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.JSON.name}".split()
-#    args = parse_arguments().parse_args(command_line)
-#    cli_export_objects(args, engine, console)
-#
+def test_export_credential_empty(engine: Engine):
+    console = Console()
+
+    command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.CSV.name}".split()
+    args = parse_arguments().parse_args(command_line)
+    cli_export_objects(args, engine, console)
+
+    command_line = f"{EXPORT_SUBCOMMAND} {CREDS_SUBCOMMAND} --format {CredsImportFileType.JSON.name}".split()
+    args = parse_arguments().parse_args(command_line)
+    cli_export_objects(args, engine, console)

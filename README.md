@@ -112,7 +112,6 @@ A small configuration file `config.toml` can be used to customise the database n
 ```toml
 [paths]
 db_name = "DB.kdbx"
-db_key_name = "db.key"
 profile_sh_path = "/opt/tools/Exegol-history/profile.sh"
 
 # Keybinds list: https://github.com/Textualize/textual/blob/8f85ece761031a756a1ecfa345b519c9c915e04b/src/textual/keys.py#L9

@@ -2,9 +2,9 @@ import subprocess
 import sys
 import pytest
 import types
-from typing import Any
 from exegol_history.cli.functions import CREDS_SUBCOMMAND, unset_objects
 from exegol_history.cli.utils import CREDS_VARIABLES, write_credential_in_profile
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import Credential
 from exegol_history.tests.common import (
     DOMAIN_TEST_VALUE,
@@ -15,7 +15,7 @@ from exegol_history.tests.common import (
 
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
-def test_unset_credential(load_mock_config: dict[str, Any]):
+def test_unset_credential(load_mock_config: AppConfig):
     credential = Credential(
         1,
         USERNAME_TEST_VALUE,
@@ -29,7 +29,7 @@ def test_unset_credential(load_mock_config: dict[str, Any]):
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -46,7 +46,7 @@ def test_unset_credential(load_mock_config: dict[str, Any]):
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${CREDS_VARIABLES[0]} ${CREDS_VARIABLES[1]} ${CREDS_VARIABLES[2]} ${CREDS_VARIABLES[3]}",
         ],
         stdout=subprocess.PIPE,
     )

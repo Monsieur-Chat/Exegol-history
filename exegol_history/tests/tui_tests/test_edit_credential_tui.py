@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.db_api.creds import Credential, get_credentials
 from common import (
@@ -10,7 +11,6 @@ from common import (
     select_input_and_enter_text,
     select_input_erase_and_enter_text,
 )
-from typing import Any
 from exegol_history.tui.widgets.credential_form import (
     ID_CONFIRM_BUTTON,
     ID_DOMAIN_INPUT,
@@ -22,11 +22,11 @@ from exegol_history.tui.widgets.credential_form import (
 
 @pytest.mark.asyncio
 async def test_edit_credential_only_username(
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
-    edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
+    edit_credential_keybind = load_mock_config.keybindings["edit_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -49,10 +49,10 @@ async def test_edit_credential_only_username(
 
 
 @pytest.mark.asyncio
-async def test_edit_credential_full(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_edit_credential_full(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
-    edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
+    edit_credential_keybind = load_mock_config.keybindings["edit_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -105,11 +105,9 @@ async def test_edit_credential_full(engine: Engine, load_mock_config: dict[str, 
 
 
 @pytest.mark.asyncio
-async def test_edit_credential_not_exist(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_edit_credential_not_exist(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
+    edit_credential_keybind = load_mock_config.keybindings["edit_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(edit_credential_keybind)
@@ -118,12 +116,10 @@ async def test_edit_credential_not_exist(
 
 
 @pytest.mark.asyncio
-async def test_edit_credential_issue_3(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_edit_credential_issue_3(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
-    edit_credential_keybind = load_mock_config["keybindings"]["edit_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
+    edit_credential_keybind = load_mock_config.keybindings["edit_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)

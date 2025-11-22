@@ -1,6 +1,7 @@
 from sqlalchemy import Engine
 from textual.keys import Keys
 import pytest
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.importing import HostsImportFileType
 from exegol_history.tui.db_hosts import DbHostsApp
 from exegol_history.db_api.hosts import Host, get_hosts
@@ -12,7 +13,6 @@ from common import (
     select_input_and_enter_text,
     select_select_index,
 )
-from typing import Any
 from exegol_history.tui.widgets.credential_form import ID_CONFIRM_BUTTON
 from exegol_history.tui.widgets.import_file import (
     ID_CONFIRM_IMPORT_BUTTON,
@@ -24,9 +24,9 @@ from exegol_history.tui.screens.open_file import ID_PATH_INPUT
 
 
 @pytest.mark.asyncio
-async def test_import_host_csv(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_import_host_csv(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(add_host_keybind)
@@ -53,10 +53,10 @@ async def test_import_host_csv(engine: Engine, load_mock_config: dict[str, Any])
 
 @pytest.mark.asyncio
 async def test_import_host_csv_file(
-    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
+    engine: Engine, load_mock_config: AppConfig, HOSTS_TEST_VALUE: list[Host]
 ):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test(size=(400, 400)) as pilot:
         await pilot.press(add_host_keybind)

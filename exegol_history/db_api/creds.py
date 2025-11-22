@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, Session
-from sqlalchemy import select, UniqueConstraint, Engine
+from sqlalchemy import case, select, UniqueConstraint, Engine
 from sqlalchemy.dialects.sqlite import insert
 from exegol_history.db_api.base import Base
 from exegol_history.db_api.utils import MESSAGE_ID_NOT_EXIST
@@ -75,14 +75,20 @@ def add_credentials(engine: Engine, credentials: list[dict]):
     if not credentials:
         return
 
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         query = insert(Credential).values(credentials)
         query = query.on_conflict_do_update(
             index_elements=["username", "domain"],
             set_={
                 "username": query.excluded.username,
-                "password": query.excluded.password,
-                "hash": query.excluded.hash,
+                "password": case(
+                    (query.excluded.password.isnot(None), query.excluded.password),
+                    else_=Credential.password,
+                ),
+                "hash": case(
+                    (query.excluded.hash.isnot(None), query.excluded.hash),
+                    else_=Credential.hash,
+                ),
                 "domain": query.excluded.domain,
             },
         )
@@ -100,9 +106,8 @@ def get_credentials(
     else:
         query = select(Credential)
 
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         for credential in session.scalars(query):
-            session.expunge(credential)
             if redacted:
                 credential.password = Credential.REDACT_SEPARATOR * 8
                 credential.hash = Credential.REDACT_SEPARATOR * 8
@@ -113,7 +118,7 @@ def get_credentials(
 
 
 def delete_credentials(engine: Engine, credential_ids: list[str] = list()):
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         query = Credential.__table__.delete().where(
             Credential.credential_id.in_(credential_ids)
         )
@@ -126,7 +131,7 @@ def delete_credentials(engine: Engine, credential_ids: list[str] = list()):
 
 
 def edit_credentials(engine: Engine, credentials: list[dict]):
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         try:
             session.bulk_update_mappings(Credential, credentials)
             session.commit()

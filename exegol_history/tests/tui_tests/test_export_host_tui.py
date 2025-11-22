@@ -1,6 +1,7 @@
 import tempfile
 import pytest
 from sqlalchemy import Engine
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.importing import HostsImportFileType
 from exegol_history.tui.db_hosts import DbHostsApp
 from exegol_history.db_api.hosts import Host, add_hosts
@@ -8,7 +9,6 @@ from common import (
     TEST_HOSTS_JSON,
     select_select_index,
 )
-from typing import Any
 from exegol_history.tui.screens.export_object import (
     ID_BROWSE_BUTTON,
     ID_EXPORT_TYPE_SELECT,
@@ -19,10 +19,10 @@ from exegol_history.tui.screens.open_file import ID_PATH_INPUT
 
 @pytest.mark.asyncio
 async def test_export_host_csv(
-    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
+    engine: Engine, load_mock_config: AppConfig, HOSTS_TEST_VALUE: list[Host]
 ):
     app = DbHostsApp(load_mock_config, engine)
-    export_host_keybind = load_mock_config["keybindings"]["export_host"]
+    export_host_keybind = load_mock_config.keybindings["export_host"]
     temp_export_csv = tempfile.NamedTemporaryFile(delete=False)
     add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
 
@@ -44,10 +44,10 @@ async def test_export_host_csv(
 
 @pytest.mark.asyncio
 async def test_export_host_json(
-    engine: Engine, load_mock_config: dict[str, Any], HOSTS_TEST_VALUE: list[Host]
+    engine: Engine, load_mock_config: AppConfig, HOSTS_TEST_VALUE: list[Host]
 ):
     app = DbHostsApp(load_mock_config, engine)
-    export_host_keybind = load_mock_config["keybindings"]["export_host"]
+    export_host_keybind = load_mock_config.keybindings["export_host"]
     temp_export_json = tempfile.NamedTemporaryFile(delete=False)
     add_hosts(engine, [host.as_dict() for host in HOSTS_TEST_VALUE])
 

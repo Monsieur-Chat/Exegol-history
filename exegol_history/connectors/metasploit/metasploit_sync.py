@@ -1,4 +1,3 @@
-from typing import Any
 from sqlalchemy import Engine
 import psycopg
 from psycopg.errors import UndefinedTable
@@ -14,15 +13,13 @@ from exegol_history.connectors.metasploit.utils import (
 class MetasploitSyncer:
     CONNECTOR_NAME = "metasploit"
 
-    def __init__(self, engine: Engine, config: dict[str, Any]):
+    def __init__(self, engine: Engine, db_config_path: str):
         (
             self.msf_db_name,
             self.msf_db_port,
             self.msf_db_username,
             self.msf_db_password,
-        ) = get_msf_postgres_db_infos(
-            config["sync"][MetasploitSyncer.CONNECTOR_NAME]["db_config_path"]
-        )
+        ) = get_msf_postgres_db_infos(db_config_path)
         self.engine = engine
 
     def sync(self):

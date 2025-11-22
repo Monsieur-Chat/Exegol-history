@@ -4,6 +4,7 @@ import sys
 
 from sqlalchemy import Engine
 from exegol_history.cli.utils import write_credential_in_profile
+from exegol_history.config.config import AppConfig
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.db_api.creds import Credential, get_credentials
 from common import (
@@ -13,7 +14,6 @@ from common import (
     DOMAIN_TEST_VALUE,
     select_input_and_enter_text,
 )
-from typing import Any
 from exegol_history.tui.widgets.credential_form import (
     ID_CONFIRM_BUTTON,
     ID_DOMAIN_INPUT,
@@ -25,10 +25,10 @@ from exegol_history.tui.widgets.credential_form import (
 
 @pytest.mark.asyncio
 async def test_add_credential_only_username(
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -43,9 +43,9 @@ async def test_add_credential_only_username(
 
 
 @pytest.mark.asyncio
-async def test_add_credential_half(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_add_credential_half(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -63,9 +63,9 @@ async def test_add_credential_half(engine: Engine, load_mock_config: dict[str, A
 
 
 @pytest.mark.asyncio
-async def test_add_credential_full(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_add_credential_full(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -96,11 +96,9 @@ async def test_add_credential_full(engine: Engine, load_mock_config: dict[str, A
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_add_and_set_credential_full(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_add_and_set_credential_full(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -131,7 +129,7 @@ async def test_add_and_set_credential_full(
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo $PASSWORD $USER $NT_HASH $DOMAIN",
+            f"source {load_mock_config.paths.profile_sh_path} && echo $PASSWORD $USER $NT_HASH $DOMAIN",
         ],
         stdout=subprocess.PIPE,
     )
@@ -144,9 +142,9 @@ async def test_add_and_set_credential_full(
 
 
 @pytest.mark.asyncio
-async def test_add_credential_empty(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_add_credential_empty(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
         await pilot.click(f"#{ID_CONFIRM_BUTTON}")
@@ -154,11 +152,9 @@ async def test_add_credential_empty(engine: Engine, load_mock_config: dict[str, 
 
 
 @pytest.mark.asyncio
-async def test_add_credential_existing(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_add_credential_existing(engine: Engine, load_mock_config: AppConfig):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
         await select_input_and_enter_text(
@@ -196,10 +192,10 @@ async def test_add_credential_existing(
 
 @pytest.mark.asyncio
 async def test_add_credential_issue_3(  # https://github.com/ThePorgs/Exegol-history/issues/3
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)
@@ -217,10 +213,10 @@ async def test_add_credential_multiple_local_account(
     # This test was made in order to test the case
     # were multiple local account were given, with only the domain being different
     engine: Engine,
-    load_mock_config: dict[str, Any],
+    load_mock_config: AppConfig,
 ):
     app = DbCredsApp(load_mock_config, engine)
-    add_credential_keybind = load_mock_config["keybindings"]["add_credential"]
+    add_credential_keybind = load_mock_config.keybindings["add_credential"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_credential_keybind)

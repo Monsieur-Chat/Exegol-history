@@ -62,7 +62,7 @@ def add_hosts(engine: Engine, hosts: list[dict]):
     if not hosts:
         return
 
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         query = insert(Host).values(hosts)
         query = query.on_conflict_do_update(
             index_elements=["ip", "hostname"],
@@ -84,7 +84,7 @@ def get_hosts(engine: Engine, host_id: str = None) -> list[Host]:
     else:
         query = select(Host)
 
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         for host in session.scalars(query):
             session.expunge(host)
             hosts.append(host)
@@ -93,7 +93,7 @@ def get_hosts(engine: Engine, host_id: str = None) -> list[Host]:
 
 
 def delete_hosts(engine: Engine, host_ids: list[str] = list()):
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         query = Host.__table__.delete().where(Host.host_id.in_(host_ids))
         result = session.execute(query)
 
@@ -104,7 +104,7 @@ def delete_hosts(engine: Engine, host_ids: list[str] = list()):
 
 
 def edit_hosts(engine: Engine, hosts: list[Host]):
-    with Session(engine, expire_on_commit=False) as session:
+    with Session(engine) as session:
         try:
             session.bulk_update_mappings(Host, hosts)
             session.commit()

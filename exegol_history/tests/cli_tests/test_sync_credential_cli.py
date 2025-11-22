@@ -1,8 +1,8 @@
-from typing import Any
 from unittest.mock import patch
 from sqlalchemy import Engine
 from exegol_history.cli.arguments import parse_arguments
 from exegol_history.cli.functions import SYNC_SUBCOMMAND, cli_sync_objects
+from exegol_history.config.config import AppConfig
 from exegol_history.connectors.metasploit.metasploit_sync import MetasploitSyncer
 from exegol_history.connectors.metasploit.utils import MetasploitCredentialType
 from exegol_history.connectors.netexec.netexec_sync import (
@@ -13,10 +13,12 @@ from exegol_history.db_api.creds import Credential, get_credentials
 from exegol_history.tests.common import (
     DOMAIN_TEST_VALUE,
     GET_PG_DB_INFOS_PATCH_PATH,
+    HASH_TEST_VALUE,
     PASSWORD_TEST_VALUE,
     PSYCOPG_PATCH_PATH,
     SQLITE3_PATCH_PATH,
     USERNAME_TEST_VALUE,
+    get_sync_connector_index,
 )
 import time
 
@@ -66,8 +68,10 @@ def generate_credentials(
 
 
 # Syncing should not take too much time for large amount of credentials
-def test_sync_credential_netexec_big(engine: Engine, load_mock_config: dict[str, Any]):
-    load_mock_config["sync"][NetexecSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_credential_netexec_big(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
     (credentials, credential_rows) = generate_credentials()
 
     start_time = time.time()
@@ -88,9 +92,11 @@ def test_sync_credential_netexec_big(engine: Engine, load_mock_config: dict[str,
 
 # Here we are also updating some random credential
 def test_sync_credential_netexec_big_update(
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
-    load_mock_config["sync"][NetexecSyncer.CONNECTOR_NAME]["enabled"] = True
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
     (credentials, credential_rows) = generate_credentials()
 
     with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
@@ -134,8 +140,10 @@ def test_sync_credential_netexec_big_update(
     assert (end_time - start_time) < 1
 
 
-def test_sync_credential_netexec(engine: Engine, load_mock_config: dict[str, Any]):
-    load_mock_config["sync"][NetexecSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_credential_netexec(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
     with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
         mocksqlite3.connect().cursor().fetchall.return_value = [
             (
@@ -161,10 +169,46 @@ def test_sync_credential_netexec(engine: Engine, load_mock_config: dict[str, Any
     ]
 
 
-def test_sync_credential_netexec_empty(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
-    load_mock_config["sync"][NetexecSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_credential_netexec_hash(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
+    with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
+        mocksqlite3.connect().cursor().fetchall.return_value = [
+            (
+                USERNAME_TEST_VALUE,
+                PASSWORD_TEST_VALUE,
+                DOMAIN_TEST_VALUE,
+                NetexecCredType.PASSWORD.value,
+            ),
+            (
+                USERNAME_TEST_VALUE,
+                HASH_TEST_VALUE,
+                DOMAIN_TEST_VALUE,
+                NetexecCredType.HASH.value,
+            ),
+        ]
+        mocksqlite3.connect().cursor().description = NETEXEC_CREDENTIALS_COLUMNS
+
+        command_line = f"{SYNC_SUBCOMMAND}".split()
+        parse_arguments().parse_args(command_line)
+        cli_sync_objects(engine, load_mock_config, {}, True, False)
+
+    assert get_credentials(engine) == [
+        Credential(
+            credential_id=1,
+            username=USERNAME_TEST_VALUE,
+            password=PASSWORD_TEST_VALUE,
+            hash=HASH_TEST_VALUE,
+            domain=DOMAIN_TEST_VALUE,
+        )
+    ]
+
+
+def test_sync_credential_netexec_empty(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, NetexecSyncer.CONNECTOR_NAME)
+    ].enabled = True
     with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
         mocksqlite3.connect().cursor().fetchall.return_value = []
         mocksqlite3.connect().cursor().description = NETEXEC_CREDENTIALS_COLUMNS
@@ -176,10 +220,10 @@ def test_sync_credential_netexec_empty(
     assert not get_credentials(engine)
 
 
-def test_sync_credential_metasploit_big(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
-    load_mock_config["sync"][MetasploitSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_credential_metasploit_big(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, MetasploitSyncer.CONNECTOR_NAME)
+    ].enabled = True
     (credentials, credentials_row) = generate_credentials(
         connector_type=MetasploitSyncer.CONNECTOR_NAME
     )
@@ -202,9 +246,11 @@ def test_sync_credential_metasploit_big(
 
 
 def test_sync_credential_metasploit_big_update(
-    engine: Engine, load_mock_config: dict[str, Any]
+    engine: Engine, load_mock_config: AppConfig
 ):
-    load_mock_config["sync"][MetasploitSyncer.CONNECTOR_NAME]["enabled"] = True
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, MetasploitSyncer.CONNECTOR_NAME)
+    ].enabled = True
     (credentials, credentials_row) = generate_credentials(
         connector_type=MetasploitSyncer.CONNECTOR_NAME
     )
@@ -254,8 +300,10 @@ def test_sync_credential_metasploit_big_update(
     assert (end_time - start_time) < 1
 
 
-def test_sync_credential_metasploit(engine: Engine, load_mock_config: dict[str, Any]):
-    load_mock_config["sync"][MetasploitSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_credential_metasploit(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, MetasploitSyncer.CONNECTOR_NAME)
+    ].enabled = True
 
     with patch(PSYCOPG_PATCH_PATH) as mockpsycopg:
         with patch(GET_PG_DB_INFOS_PATCH_PATH) as get_msf_postgres_db_infos:
@@ -284,10 +332,10 @@ def test_sync_credential_metasploit(engine: Engine, load_mock_config: dict[str, 
     ]
 
 
-def test_sync_credential_metasploit_empty(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
-    load_mock_config["sync"][MetasploitSyncer.CONNECTOR_NAME]["enabled"] = True
+def test_sync_credential_metasploit_empty(engine: Engine, load_mock_config: AppConfig):
+    load_mock_config.sync[
+        get_sync_connector_index(load_mock_config, MetasploitSyncer.CONNECTOR_NAME)
+    ].enabled = True
 
     with patch(PSYCOPG_PATCH_PATH) as mockpsycopg:
         with patch(GET_PG_DB_INFOS_PATCH_PATH) as get_msf_postgres_db_infos:

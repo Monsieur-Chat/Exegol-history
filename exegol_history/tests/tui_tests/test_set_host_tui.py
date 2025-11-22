@@ -1,6 +1,5 @@
 from sqlalchemy import Engine
 from textual.keys import Keys
-from typing import Any
 import pytest
 import subprocess
 import sys
@@ -14,6 +13,7 @@ from common import (
     ROLE_TEST_VALUE,
     select_input_and_enter_text,
 )
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.hosts import Host
 from exegol_history.tui.db_hosts import DbHostsApp
 from exegol_history.tui.widgets.credential_form import (
@@ -27,9 +27,7 @@ from exegol_history.tui.widgets.host_form import (
 
 
 @pytest.mark.asyncio
-async def test_set_host_without_selecting(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_set_host_without_selecting(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
 
     async with app.run_test() as pilot:
@@ -40,9 +38,9 @@ async def test_set_host_without_selecting(
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_only_ip_linux(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_set_host_only_ip_linux(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -56,7 +54,7 @@ async def test_set_host_only_ip_linux(engine: Engine, load_mock_config: dict[str
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -68,7 +66,7 @@ async def test_set_host_only_ip_linux(engine: Engine, load_mock_config: dict[str
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} ${HOSTS_VARIABLES[5]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} ${HOSTS_VARIABLES[5]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -79,9 +77,9 @@ async def test_set_host_only_ip_linux(engine: Engine, load_mock_config: dict[str
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_half_linux(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_set_host_half_linux(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -98,7 +96,7 @@ async def test_set_host_half_linux(engine: Engine, load_mock_config: dict[str, A
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -111,7 +109,7 @@ async def test_set_host_half_linux(engine: Engine, load_mock_config: dict[str, A
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} ${HOSTS_VARIABLES[5]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} ${HOSTS_VARIABLES[5]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -122,9 +120,9 @@ async def test_set_host_half_linux(engine: Engine, load_mock_config: dict[str, A
 
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_full_linux(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_set_host_full_linux(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -142,7 +140,7 @@ async def test_set_host_full_linux(engine: Engine, load_mock_config: dict[str, A
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[5]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[5]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -156,7 +154,7 @@ async def test_set_host_full_linux(engine: Engine, load_mock_config: dict[str, A
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -170,9 +168,9 @@ async def test_set_host_full_linux(engine: Engine, load_mock_config: dict[str, A
 # the DC_HOST and DC_IP variable shouldn't change
 @pytest.mark.skipif(sys.platform.startswith("win"), reason="require Linux")
 @pytest.mark.asyncio
-async def test_set_host_dc_linux(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_set_host_dc_linux(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -190,7 +188,7 @@ async def test_set_host_dc_linux(engine: Engine, load_mock_config: dict[str, Any
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -218,7 +216,7 @@ async def test_set_host_dc_linux(engine: Engine, load_mock_config: dict[str, Any
         [
             "bash",
             "-c",
-            f"source {load_mock_config['paths']['profile_sh_path']} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]}",
+            f"source {load_mock_config.paths.profile_sh_path} && echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -232,11 +230,9 @@ async def test_set_host_dc_linux(engine: Engine, load_mock_config: dict[str, Any
 
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_host_only_ip_windows(
-    engine: Engine, load_mock_config: dict[str, Any]
-):
+async def test_set_host_only_ip_windows(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -250,7 +246,7 @@ async def test_set_host_only_ip_windows(
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -262,7 +258,7 @@ async def test_set_host_only_ip_windows(
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[2]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[2]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -273,9 +269,9 @@ async def test_set_host_only_ip_windows(
 
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_host_half_windows(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_set_host_half_windows(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -292,7 +288,7 @@ async def test_set_host_half_windows(engine: Engine, load_mock_config: dict[str,
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -305,7 +301,7 @@ async def test_set_host_half_windows(engine: Engine, load_mock_config: dict[str,
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} ${HOSTS_VARIABLES[5]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} ${HOSTS_VARIABLES[5]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -316,9 +312,9 @@ async def test_set_host_half_windows(engine: Engine, load_mock_config: dict[str,
 
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_host_full_windows(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_set_host_full_windows(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -336,7 +332,7 @@ async def test_set_host_full_windows(engine: Engine, load_mock_config: dict[str,
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[5]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[5]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -350,7 +346,7 @@ async def test_set_host_full_windows(engine: Engine, load_mock_config: dict[str,
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -364,9 +360,9 @@ async def test_set_host_full_windows(engine: Engine, load_mock_config: dict[str,
 # the DC_HOST and DC_IP variable shouldn't change
 @pytest.mark.skipif(sys.platform != "Windows", reason="require Windows")
 @pytest.mark.asyncio
-async def test_set_host_dc_windows(engine: Engine, load_mock_config: dict[str, Any]):
+async def test_set_host_dc_windows(engine: Engine, load_mock_config: AppConfig):
     app = DbHostsApp(load_mock_config, engine)
-    add_host_keybind = load_mock_config["keybindings"]["add_host"]
+    add_host_keybind = load_mock_config.keybindings["add_host"]
 
     async with app.run_test() as pilot:
         await pilot.press(add_host_keybind)
@@ -384,7 +380,7 @@ async def test_set_host_dc_windows(engine: Engine, load_mock_config: dict[str, A
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} }}",
         ],
         stdout=subprocess.PIPE,
     )
@@ -412,7 +408,7 @@ async def test_set_host_dc_windows(engine: Engine, load_mock_config: dict[str, A
         [
             "powershell",
             "-Command",
-            f". {load_mock_config['paths']['profile_sh_path']}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} }}",
+            f". {load_mock_config.paths.profile_sh_path}; if ($?) {{ echo ${HOSTS_VARIABLES[0]} ${HOSTS_VARIABLES[1]} ${HOSTS_VARIABLES[2]} ${HOSTS_VARIABLES[3]} ${HOSTS_VARIABLES[4]} }}",
         ],
         stdout=subprocess.PIPE,
     )
