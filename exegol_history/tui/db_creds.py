@@ -5,7 +5,6 @@ from textual.app import App, ComposeResult, SystemCommand
 from textual.keys import Keys
 from textual.theme import Theme
 from textual.screen import Screen
-from textual.containers import Vertical
 from textual.widgets.data_table import RowDoesNotExist
 from textual.widgets import Footer, Header, Input, Rule
 from textual.binding import Binding
@@ -126,13 +125,11 @@ class DbCredsApp(App):
         self.show_add_screen = show_add_screen
 
     def compose(self) -> ComposeResult:
-        yield Vertical(
-            Header(),
-            ObjectsDataTable(),
-            Rule(line_style="heavy"),
-            Input(placeholder="🔍 Search...", id="search-bar"),
-            Footer(),
-        )
+        yield Header()
+        yield ObjectsDataTable()
+        yield Rule(line_style="heavy")
+        yield Input(placeholder="🔍 Search...", id="search-bar")
+        yield Footer()
 
     def on_mount(self) -> None:
         self.register_theme(self.custom_theme)

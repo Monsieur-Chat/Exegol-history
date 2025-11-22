@@ -13,6 +13,8 @@ from exegol_history.tests.common import (
     get_sync_connector_index,
 )
 
+NETEXEC_HOSTS_COLUMNS = [["ip"], ["hostname"]]
+
 
 def generate_hosts(number_of_object: int = 2000):
     hosts = []
@@ -39,6 +41,7 @@ def test_sync_host_netexec_big(engine: Engine, load_mock_config: AppConfig):
 
     with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
         mocksqlite3.connect().cursor().fetchall.return_value = hosts_row
+        mocksqlite3.connect().cursor().description = NETEXEC_HOSTS_COLUMNS
 
         command_line = f"{SYNC_SUBCOMMAND}".split()
         parse_arguments().parse_args(command_line)
@@ -59,6 +62,7 @@ def test_sync_host_netexec(engine: Engine, load_mock_config: AppConfig):
         mocksqlite3.connect().cursor().fetchall.return_value = [
             (IP_TEST_VALUE, HOSTNAME_TEST_VALUE)
         ]
+        mocksqlite3.connect().cursor().description = NETEXEC_HOSTS_COLUMNS
 
         command_line = f"{SYNC_SUBCOMMAND}".split()
         parse_arguments().parse_args(command_line)
@@ -76,6 +80,7 @@ def test_sync_host_netexec_empty(engine: Engine, load_mock_config: AppConfig):
 
     with patch(SQLITE3_PATCH_PATH) as mocksqlite3:
         mocksqlite3.connect().cursor().fetchall.return_value = []
+        mocksqlite3.connect().cursor().description = NETEXEC_HOSTS_COLUMNS
 
         command_line = f"{SYNC_SUBCOMMAND}".split()
         parse_arguments().parse_args(command_line)

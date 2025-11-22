@@ -33,7 +33,7 @@ class NetexecSyncer:
             ),
             "ftp.db": (
                 "SELECT username, password FROM credentials",
-                "SELECT ip, hostname FROM hosts",
+                "SELECT host FROM hosts",
             ),
             "mssql.db": (
                 "SELECT username, password, domain, credtype FROM users",
@@ -41,7 +41,7 @@ class NetexecSyncer:
             ),
             "ssh.db": (
                 "SELECT username, password, credtype FROM credentials",
-                "SELECT ip, hostname FROM hosts",
+                "SELECT host FROM hosts",
             ),
             "winrm.db": (
                 "SELECT username, password, domain, credtype FROM users",
@@ -72,15 +72,12 @@ class NetexecSyncer:
     def sync(self) -> tuple[list[dict], list[dict]]:
         if self.workspaces_dir.exists():
             for workspace in self.workspaces_dir.iterdir():
-                #workspace_path = self.workspaces_dir / workspace
                 if workspace.is_dir():
                     return self.process_workspace(workspace)
         else:
             raise (
                 RuntimeError(f"No workspaces directory found at {self.workspaces_dir}")
             )
-
-        return ([], [])
 
     def process_workspace(self, workspace_path: Path) -> tuple[list[dict], list[dict]]:
         credentials = []
@@ -91,14 +88,14 @@ class NetexecSyncer:
 
             if db_file_path.is_file():
                 if self.sync_credentials:
-                    credentials = self.extract_credentials(db_file_path, queries[0])
+                    credentials += self.extract_credentials(db_file_path, queries[0])
 
-                if self.sync_hosts:
-                    hosts = self.extract_hosts(db_file_path, queries[1])
+                if self.sync_hosts and (
+                    db_file not in ["ftp.db", "ssh.db"]
+                ):  # Need to fix FTP and SSH in Netexec
+                    hosts += self.extract_hosts(db_file_path, queries[1])
 
-                return (credentials, hosts)
-            else:
-                raise (RuntimeError(f"Missing: {db_file}"))
+        return (credentials, hosts)
 
     def extract_credentials(self, db_file_path: str, query: str) -> list[dict]:
         try:
@@ -142,10 +139,15 @@ class NetexecSyncer:
             hosts = []
 
             cursor.execute(query)
-            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
 
-            for row in rows:
-                ip, hostname = row
+            for row in cursor.fetchall():
+                ip = hostname = None
+
+                if "ip" in columns:
+                    ip, hostname = row
+                else:
+                    hostname = row
 
                 hosts.append(Host.dict(ip=ip, hostname=hostname))
 

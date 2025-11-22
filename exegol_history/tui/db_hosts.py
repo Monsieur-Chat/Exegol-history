@@ -8,7 +8,6 @@ from textual.screen import Screen
 from textual.widgets.data_table import RowDoesNotExist
 from textual.widgets import Footer, Header, DataTable, Input, Rule
 from textual.binding import Binding
-from textual.containers import Vertical
 from exegol_history.config.config import AppConfig
 from exegol_history.db_api.exporting import export_objects
 from exegol_history.db_api.hosts import (
@@ -116,13 +115,11 @@ class DbHostsApp(App):
         self.show_add_screen = show_add_screen
 
     def compose(self) -> ComposeResult:
-        yield Vertical(
-            Header(),
-            ObjectsDataTable(),
-            Rule(line_style="heavy"),
-            Input(placeholder="🔍 Search...", id="search-bar"),
-            Footer(),
-        )
+        yield Header()
+        yield ObjectsDataTable()
+        yield Rule(line_style="heavy")
+        yield Input(placeholder="🔍 Search...", id="search-bar")
+        yield Footer()
 
     def on_mount(self) -> None:
         self.register_theme(self.custom_theme)
