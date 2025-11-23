@@ -102,6 +102,12 @@ def add_subparser(subparsers):
     credential_add_parser.add_argument(
         "-d", "--domain", help="Domain associated with the credential entry."
     )
+    credential_add_parser.add_argument(
+        "-s",
+        "--set",
+        action="store_true",
+        help="Automatically set the added credential in the shell.",
+    )
 
     # Hosts
     hosts_add_parser = add_subparsers.add_parser(
@@ -115,6 +121,12 @@ def add_subparser(subparsers):
     )
     hosts_add_parser.add_argument(
         "-n", "--hostname", help="Hostname or NetBIOS name of the host."
+    )
+    hosts_add_parser.add_argument(
+        "-s",
+        "--set",
+        action="store_true",
+        help="Automatically set the added host in the shell.",
     )
 
 
