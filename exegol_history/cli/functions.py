@@ -68,6 +68,7 @@ def add_object(args: argparse.Namespace, engine: Engine, config: AppConfig):
             )
             # If set flag is provided, automatically set the credential
             if args.set:
+                credential_to_add = Credential(username=args.username, password=args.password, hash=args.hash, domain=args.domain)
                 write_credential_in_profile(credential_to_add, config)
         else:  # If no arguments are given, display the TUI adding screen
             app = DbCredsApp(config, engine, show_add_screen=True)
@@ -79,6 +80,7 @@ def add_object(args: argparse.Namespace, engine: Engine, config: AppConfig):
             )
             # If set flag is provided, automatically set the host
             if args.set:
+                host_to_add = Host(ip=args.ip, hostname=args.hostname, role=args.role)
                 write_host_in_profile(host_to_add, config)
         else:  # If no arguments are given, display the TUI adding screen
             app = DbHostsApp(config, engine, show_add_screen=True)
