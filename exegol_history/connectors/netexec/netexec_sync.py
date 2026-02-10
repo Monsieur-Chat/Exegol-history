@@ -29,7 +29,7 @@ class NetexecSyncer:
         self.db_files = {
             "smb.db": (
                 "SELECT username, password, domain, credtype FROM users",
-                "SELECT ip, hostname FROM hosts",
+                "SELECT ip, hostname, domain FROM hosts",
             ),
             "ftp.db": (
                 "SELECT username, password FROM credentials",
@@ -37,7 +37,7 @@ class NetexecSyncer:
             ),
             "mssql.db": (
                 "SELECT username, password, domain, credtype FROM users",
-                "SELECT ip, hostname FROM hosts",
+                "SELECT ip, hostname, domain FROM hosts",
             ),
             "ssh.db": (
                 "SELECT username, password, credtype FROM credentials",
@@ -45,15 +45,15 @@ class NetexecSyncer:
             ),
             "winrm.db": (
                 "SELECT username, password, domain, credtype FROM users",
-                "SELECT ip, hostname FROM hosts",
+                "SELECT ip, hostname, domain FROM hosts",
             ),
             "ldap.db": (
                 "SELECT username, password, domain, credtype FROM users",
-                "SELECT ip, hostname FROM hosts",
+                "SELECT ip, hostname, domain FROM hosts",
             ),
             "rdp.db": (
                 "SELECT username, password FROM credentials",
-                "SELECT ip, hostname FROM hosts",
+                "SELECT ip, hostname, domain FROM hosts",
             ),
             "nfs.db": (
                 "SELECT username, password FROM credentials",
@@ -148,6 +148,10 @@ class NetexecSyncer:
                     ip, hostname = row
                 else:
                     hostname = row
+
+                if "domain" in columns:
+                    ip, hostname, domain = row
+                    hostname = hostname + '.' + domain
 
                 hosts.append(Host.dict(ip=ip, hostname=hostname))
 
