@@ -2,7 +2,7 @@ from sqlalchemy.orm import Mapped, mapped_column, Session
 from sqlalchemy import case, select, UniqueConstraint, Engine
 from sqlalchemy.dialects.sqlite import insert
 from exegol_history.db_api.base import Base
-from exegol_history.db_api.utils import MESSAGE_ID_NOT_EXIST
+from exegol_history.db_api.utils import MESSAGE_ID_NOT_EXIST, OBJECT_ALREADY_EXIST
 
 
 class Credential(Base):
@@ -130,10 +130,10 @@ def delete_credentials(engine: Engine, credential_ids: list[str] = list()):
         raise RuntimeError(MESSAGE_ID_NOT_EXIST)
 
 
-def edit_credentials(engine: Engine, credentials: list[dict]):
+def edit_credentials(engine: Engine, credentials: list[Credential]):
     with Session(engine) as session:
         try:
             session.bulk_update_mappings(Credential, credentials)
             session.commit()
         except Exception:
-            raise RuntimeError(MESSAGE_ID_NOT_EXIST)
+            raise RuntimeError(OBJECT_ALREADY_EXIST)

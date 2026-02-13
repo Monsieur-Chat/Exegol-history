@@ -52,7 +52,8 @@ class NetexecSyncer:
                 "SELECT ip, hostname, domain FROM hosts",
             ),
             "rdp.db": (
-                "SELECT username, password FROM credentials",
+                #"SELECT username, password FROM credentials",
+                "",
                 "SELECT ip, hostname, domain FROM hosts",
             ),
             "nfs.db": (
@@ -88,75 +89,75 @@ class NetexecSyncer:
 
             if db_file_path.is_file():
                 if self.sync_credentials:
-                    credentials += self.extract_credentials(db_file_path, queries[0])
+                    try:
+                        credentials += self.extract_credentials(db_file_path, queries[0])
+                    except Exception as e:
+                        continue
 
                 if self.sync_hosts and (
                     db_file not in ["ftp.db", "ssh.db"]
                 ):  # Need to fix FTP and SSH in Netexec
-                    hosts += self.extract_hosts(db_file_path, queries[1])
+                    try:
+                        hosts += self.extract_hosts(db_file_path, queries[1])
+                    except Exception as e:
+                        continue
 
         return (credentials, hosts)
 
     def extract_credentials(self, db_file_path: str, query: str) -> list[dict]:
-        try:
-            conn = sqlite3.connect(db_file_path)
-            cursor = conn.cursor()
-            credentials = []
+        conn = sqlite3.connect(db_file_path)
+        cursor = conn.cursor()
+        credentials = []
 
-            cursor.execute(query)
+        cursor.execute(query)
 
-            columns = [desc[0] for desc in cursor.description]
+        columns = [desc[0] for desc in cursor.description]
 
-            for row in cursor.fetchall():
-                username = password = domain = credtype = None
+        for row in cursor.fetchall():
+            username = password = domain = credtype = None
 
-                if ("domain" in columns) and ("credtype" in columns):
-                    username, password, domain, credtype = row
-                elif "credtype" in columns:
-                    username, password, credtype = row
-                else:
-                    username, password = row
+            if ("domain" in columns) and ("credtype" in columns):
+                username, password, domain, credtype = row
+            elif "credtype" in columns:
+                username, password, credtype = row
+            else:
+                username, password = row
 
-                credential = Credential.dict(None, username, None, None, domain)
+            credential = Credential.dict(None, username, None, None, domain)
 
-                if credtype == NetexecCredType.HASH.value:
-                    credential["hash"] = password
-                elif credtype == NetexecCredType.PASSWORD.value:
-                    credential["password"] = password
+            if credtype == NetexecCredType.HASH.value:
+                credential["hash"] = password
+            elif credtype == NetexecCredType.PASSWORD.value:
+                credential["password"] = password
 
-                credentials.append(credential)
+            credentials.append(credential)
 
-            conn.close()
+        conn.close()
 
-            return credentials
-        except Exception as e:
-            raise (e)
+        return credentials
+
 
     def extract_hosts(self, db_file_path: str, query: str) -> list[dict]:
-        try:
-            conn = sqlite3.connect(db_file_path)
-            cursor = conn.cursor()
-            hosts = []
+        conn = sqlite3.connect(db_file_path)
+        cursor = conn.cursor()
+        hosts = []
 
-            cursor.execute(query)
-            columns = [desc[0] for desc in cursor.description]
+        cursor.execute(query)
+        columns = [desc[0] for desc in cursor.description]
 
-            for row in cursor.fetchall():
-                ip = hostname = None
+        for row in cursor.fetchall():
+            ip = hostname = None
 
-                if "ip" in columns:
-                    ip, hostname = row
-                else:
-                    hostname = row
+            if "domain" in columns:
+                ip, hostname, domain = row
+                hostname = hostname + '.' + domain
+            elif "ip" in columns:
+                ip, hostname = row
+            else:
+                hostname = row
 
-                if "domain" in columns:
-                    ip, hostname, domain = row
-                    hostname = hostname + '.' + domain
+            hosts.append(Host.dict(ip=ip, hostname=hostname))
 
-                hosts.append(Host.dict(ip=ip, hostname=hostname))
+        conn.close()
 
-            conn.close()
-
-            return hosts
-        except Exception as e:
-            raise (e)
+        return hosts

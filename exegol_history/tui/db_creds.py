@@ -321,7 +321,12 @@ class DbCredsApp(App):
 
     def action_edit_credential(self) -> None:
         def check_edit_creds(credential: Credential) -> None:
-            edit_credentials(self.engine, [credential])
+            try:
+                edit_credentials(self.engine, [credential])
+            except RuntimeError as e:
+                self.notify(
+                    f"There was an error while editing: {e}", severity="error"
+                )
 
             self.update_table()
 

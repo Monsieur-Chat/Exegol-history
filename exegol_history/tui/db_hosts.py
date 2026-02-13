@@ -263,7 +263,12 @@ class DbHostsApp(App):
 
     def action_edit_host(self) -> None:
         def check_edit_host(host: Host) -> None:
-            edit_hosts(self.engine, [host])
+            try:
+                edit_hosts(self.engine, [host])
+            except RuntimeError as e:
+                self.notify(
+                    f"There was an error while editing: {e}", severity="error"
+                )
 
             self.update_table()
 
