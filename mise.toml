@@ -1,0 +1,27 @@
+[hooks]
+enter = "mise i -q && poetry install"
+
+[tools]
+ruff = "latest"
+python = "3.13"
+poetry = "2.2.1"
+
+[tasks]
+lint = "ruff format . && ruff check ."
+test = "poetry run pytest"
+
+[tasks.debug]
+description = ""
+usage = '''
+arg "<type>" help="Program to debug (creds or hosts)" default="creds" { choices "creds" "hosts" }
+'''
+
+run = '''
+echo "[*] Please run the 'poetry run textual console -x EVENT -x DEBUG -x SYSTEM' command"
+
+if [[ ${usage_type?} = "creds" ]]; then
+    poetry run textual run --dev exegol-history.py set creds
+else
+    poetry run textual run --dev exegol-history.py set hosts
+fi
+'''

@@ -12,6 +12,7 @@ from exegol_history.cli.functions import (
     SHOW_SUBCOMMAND,
     UNSET_SUBCOMMAND,
     VERSION_SUBCOMMAND,
+    SYNC_SUBCOMMAND,
 )
 from exegol_history.cli.utils import check_delimiter
 from exegol_history.db_api.exporting import CredsExportFileType, HostsExportFileType
@@ -43,6 +44,7 @@ def parse_arguments() -> argparse.Namespace:
     edit_subparser(subparsers)
     export_subparser(subparsers)
     delete_subparser(subparsers)
+    sync_subparser(subparsers)
     tui_subparser(subparsers)
 
     return parser
@@ -87,37 +89,44 @@ def add_subparser(subparsers):
         CREDS_SUBCOMMAND, help="Add or update credentials in the database."
     )
     credential_add_parser.add_argument(
-        "-u", "--username", help="Username for the credential entry.", default=""
+        "-u", "--username", help="Username for the credential entry."
     )
     credential_add_parser.add_argument(
-        "-p", "--password", help="Password for the credential entry.", default=""
+        "-p", "--password", help="Password for the credential entry."
     )
     credential_add_parser.add_argument(
         "-H",
         "--hash",
         help="Password hash (such as NTLM, MD5, etc.) for the credential entry.",
-        default="",
     )
     credential_add_parser.add_argument(
-        "-d",
-        "--domain",
-        help="Domain associated with the credential entry.",
-        default="",
+        "-d", "--domain", help="Domain associated with the credential entry."
+    )
+    credential_add_parser.add_argument(
+        "-s",
+        "--set",
+        action="store_true",
+        help="Automatically set the added credential in the shell.",
     )
 
     # Hosts
     hosts_add_parser = add_subparsers.add_parser(
         HOSTS_SUBCOMMAND, help="Add or update host information in the database."
     )
-    hosts_add_parser.add_argument("--ip", help="IP address of the host.", default="")
+    hosts_add_parser.add_argument("--ip", help="IP address of the host.")
     hosts_add_parser.add_argument(
         "-r",
         "--role",
         help="Role of the host in the environment (e.g., SCCM, ADCS, DC, WKS).",
-        default="",
     )
     hosts_add_parser.add_argument(
-        "-n", "--hostname", help="Hostname or NetBIOS name of the host.", default=""
+        "-n", "--hostname", help="Hostname or NetBIOS name of the host."
+    )
+    hosts_add_parser.add_argument(
+        "-s",
+        "--set",
+        action="store_true",
+        help="Automatically set the added host in the shell.",
     )
 
 
@@ -196,22 +205,18 @@ def edit_subparser(subparsers):
         help="ID used to know which credentials to edit.",
     )
     credential_edit_parser.add_argument(
-        "-u", "--username", help="Username for the credential entry.", default=""
+        "-u", "--username", help="Username for the credential entry."
     )
     credential_edit_parser.add_argument(
-        "-p", "--password", help="Password for the credential entry.", default=""
+        "-p", "--password", help="Password for the credential entry."
     )
     credential_edit_parser.add_argument(
         "-H",
         "--hash",
         help="Password hash (such as NTLM, MD5, etc.) for the credential entry.",
-        default="",
     )
     credential_edit_parser.add_argument(
-        "-d",
-        "--domain",
-        help="Domain associated with the credential entry.",
-        default="",
+        "-d", "--domain", help="Domain associated with the credential entry."
     )
 
     # Hosts
@@ -224,22 +229,14 @@ def edit_subparser(subparsers):
         required=True,
         help="ID used to know which hosts to edit.",
     )
-    hosts_edit_parser.add_argument(
-        "--ip",
-        help="IP address of the host.",
-        default="",
-    )
+    hosts_edit_parser.add_argument("--ip", help="IP address of the host.")
     hosts_edit_parser.add_argument(
         "-r",
         "--role",
         help="Role of the host in the environment (e.g., SCCM, ADCS, DC, WKS).",
-        default="",
     )
     hosts_edit_parser.add_argument(
-        "-n",
-        "--hostname",
-        help="Hostname or NetBIOS name of the host.",
-        default="",
+        "-n", "--hostname", help="Hostname or NetBIOS name of the host."
     )
 
 
@@ -332,6 +329,13 @@ def delete_subparser(subparsers):
         "--id",
         required=True,
         help="IDs of the hosts to be deleted, value are separated by a ',', and ranges by a '-', e.g: '5,7,8-18'.",
+    )
+
+
+def sync_subparser(subparsers):
+    subparsers.add_parser(
+        SYNC_SUBCOMMAND,
+        help="Synchronise credentials or hosts with external sources (netexec, Metasploit, ...).",
     )
 
 

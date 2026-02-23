@@ -1,6 +1,5 @@
 [paths]
-db_name = "DB.kdbx"
-db_key_name = "db.key"
+db_name = "exh.db"
 profile_sh_path = "/opt/tools/Exegol-history/profile.sh"
 
 # Keybinds list: https://github.com/Textualize/textual/blob/8f85ece761031a756a1ecfa345b519c9c915e04b/src/textual/keys.py#L9
@@ -20,6 +19,14 @@ edit_host = "f5"
 export_host = "f6"
 quit = "ctrl+c"
 
+[sync.netexec]
+enabled = true
+workspace_path = "~/.nxc/workspaces/"
+
+[sync.metasploit]
+enabled = false
+db_config_path = "/var/lib/postgresql/.msf4/database.yml"
+
 [theme]
 primary = "#0178D4"
 secondary = "#004578"
@@ -37,3 +44,4 @@ add_icon = "➕"
 delete_icon = "➖"
 edit_icon = "📝"
 export_icon = "📤"
+inline = true

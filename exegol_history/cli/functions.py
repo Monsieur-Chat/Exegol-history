@@ -1,8 +1,6 @@
 import argparse
 import os
 import sys
-from typing import Any
-from pykeepass import PyKeePass
 from exegol_history.cli.utils import (
     CREDS_VARIABLES,
     HOSTS_VARIABLES,
@@ -10,11 +8,12 @@ from exegol_history.cli.utils import (
     write_credential_in_profile,
     write_host_in_profile,
 )
+from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import (
     Credential,
     add_credentials,
     delete_credentials,
-    edit_credential,
+    edit_credentials,
     get_credentials,
 )
 from exegol_history.db_api.exporting import export_objects
@@ -22,7 +21,7 @@ from exegol_history.db_api.hosts import (
     Host,
     add_hosts,
     delete_hosts,
-    edit_host,
+    edit_hosts,
     get_hosts,
 )
 from exegol_history.db_api.importing import (
@@ -30,10 +29,12 @@ from exegol_history.db_api.importing import (
     HostsImportFileType,
     import_objects,
 )
+from exegol_history.db_api.sync import sync_objects
 from exegol_history.db_api.utils import parse_ids
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.tui.db_hosts import DbHostsApp
 from rich.console import Console
+from sqlalchemy import Engine
 import importlib.metadata
 
 CREDS_SUBCOMMAND = "creds"
@@ -48,66 +49,85 @@ SET_SUBCOMMAND = "set"
 UNSET_SUBCOMMAND = "unset"
 SHOW_SUBCOMMAND = "show"
 DELETE_SUBCOMMAND = "rm"
+SYNC_SUBCOMMAND = "sync"
 
 
-def add_object(args: argparse.Namespace, kp: PyKeePass, config: dict[str, Any]):
+def add_object(args: argparse.Namespace, engine: Engine, config: AppConfig):
     if args.subcommand == CREDS_SUBCOMMAND:
         if any([args.username, args.password, args.hash, args.domain]):
-            credential_to_add = Credential(
-                username=args.username,
-                password=args.password,
-                hash=args.hash,
-                domain=args.domain,
+            add_credentials(
+                engine,
+                [
+                    Credential.dict(
+                        username=args.username,
+                        password=args.password,
+                        hash=args.hash,
+                        domain=args.domain,
+                    )
+                ],
             )
-            add_credentials(kp, [credential_to_add])
+            # If set flag is provided, automatically set the credential
+            if args.set:
+                credential_to_add = Credential(
+                    username=args.username,
+                    password=args.password,
+                    hash=args.hash,
+                    domain=args.domain,
+                )
+                write_credential_in_profile(credential_to_add, config)
         else:  # If no arguments are given, display the TUI adding screen
-            app = DbCredsApp(config, kp, show_add_screen=True)
-            app.run()
+            app = DbCredsApp(config, engine, show_add_screen=True)
+            app.run(inline=config.theme.inline)
     elif args.subcommand == HOSTS_SUBCOMMAND:
         if any([args.ip, args.hostname, args.role]):
-            host_to_add = Host(ip=args.ip, hostname=args.hostname, role=args.role)
-            add_hosts(kp, [host_to_add])
+            add_hosts(
+                engine, [Host.dict(ip=args.ip, hostname=args.hostname, role=args.role)]
+            )
+            # If set flag is provided, automatically set the host
+            if args.set:
+                host_to_add = Host(ip=args.ip, hostname=args.hostname, role=args.role)
+                write_host_in_profile(host_to_add, config)
         else:  # If no arguments are given, display the TUI adding screen
-            app = DbHostsApp(config, kp, show_add_screen=True)
-            app.run()
+            app = DbHostsApp(config, engine, show_add_screen=True)
+            app.run(inline=config.theme.inline)
 
 
-def delete_objects(args: argparse.Namespace, kp: PyKeePass, console: Console):
+def delete_objects(args: argparse.Namespace, engine: Engine, console: Console):
     ids = parse_ids(args.id)
 
     try:
         if args.subcommand == CREDS_SUBCOMMAND:
-            delete_credentials(kp, ids)
+            delete_credentials(engine, ids)
         elif args.subcommand == HOSTS_SUBCOMMAND:
-            delete_hosts(kp, ids)
+            delete_hosts(engine, ids)
     except RuntimeError as e:
         console.print(console_error(e))
 
 
-def edit_object(args: argparse.Namespace, kp: PyKeePass, console: Console):
+def edit_object(args: argparse.Namespace, engine: Engine, console: Console):
     try:
         if args.subcommand == CREDS_SUBCOMMAND:
             credential = Credential(
-                id=args.id,
+                args.id,
                 username=args.username,
                 password=args.password,
                 hash=args.hash,
                 domain=args.domain,
             )
-            edit_credential(kp, credential)
+            edit_credentials(engine, [credential.as_dict()])
         elif args.subcommand == HOSTS_SUBCOMMAND:
-            host = Host(id=args.id, ip=args.ip, hostname=args.hostname, role=args.role)
-            edit_host(kp, host)
+            host = Host(args.id, ip=args.ip, hostname=args.hostname, role=args.role)
+            edit_hosts(engine, [host.as_dict()])
     except RuntimeError as e:
         console.print(console_error(e))
 
 
-def cli_export_objects(args: argparse.Namespace, kp: PyKeePass, console: Console):
+def cli_export_objects(args: argparse.Namespace, engine: Engine, console: Console):
     if args.subcommand == CREDS_SUBCOMMAND:
-        objects = get_credentials(kp, redacted=args.redacted)
+        objects = get_credentials(engine, redacted=args.redacted)
         file_format = CredsImportFileType[args.format]
     elif args.subcommand == HOSTS_SUBCOMMAND:
-        objects = get_hosts(kp)
+        objects = get_hosts(engine)
         file_format = HostsImportFileType[args.format]
     else:
         raise NotImplementedError
@@ -125,7 +145,7 @@ def cli_export_objects(args: argparse.Namespace, kp: PyKeePass, console: Console
             console.print(export_output)
 
 
-def cli_import_objects(args: argparse.Namespace, kp: PyKeePass):
+def cli_import_objects(args: argparse.Namespace, engine: Engine):
     file_to_import = open(args.file, "rb")
 
     if args.subcommand == CREDS_SUBCOMMAND:
@@ -138,7 +158,7 @@ def cli_import_objects(args: argparse.Namespace, kp: PyKeePass):
             keyfile_path=args.kdbx_keyfile,
         )
 
-        add_credentials(kp, parsed_objects)
+        add_credentials(engine, parsed_objects)
     elif args.subcommand == HOSTS_SUBCOMMAND:
         import_type = HostsImportFileType[args.format]
 
@@ -147,34 +167,34 @@ def cli_import_objects(args: argparse.Namespace, kp: PyKeePass):
             file_to_import.read(),
         )
 
-        add_hosts(kp, parsed_objects)
+        add_hosts(engine, parsed_objects)
 
     file_to_import.close()
 
 
 def set_objects(
-    args: argparse.Namespace, kp: PyKeePass, config: dict[str, Any], console: Console
+    args: argparse.Namespace, engine: Engine, config: AppConfig, console: Console
 ):
     if args.subcommand == CREDS_SUBCOMMAND:
         try:
-            app = DbCredsApp(config, kp)
-            row_data = app.run()
+            app = DbCredsApp(config, engine)
+            row_data = app.run(inline=config.theme.inline)
             if row_data is not None:
                 write_credential_in_profile(Credential(*row_data), config)
         except TypeError:  # It means the user left the TUI without choosing anything
             sys.exit(0)
     elif args.subcommand == HOSTS_SUBCOMMAND:
-        app = DbHostsApp(config, kp)
+        app = DbHostsApp(config, engine)
 
         try:
-            row_data = app.run()
+            row_data = app.run(inline=config.theme.inline)
             if row_data is not None:
                 write_host_in_profile(Host(*row_data), config)
         except TypeError:  # It means the user left the TUI without choosing anything
             sys.exit(0)
 
 
-def unset_objects(args: argparse.Namespace, config: dict[str, Any]):
+def unset_objects(args: argparse.Namespace, config: AppConfig):
     if args.subcommand == CREDS_SUBCOMMAND:
         write_credential_in_profile(Credential(), config)
     elif args.subcommand == HOSTS_SUBCOMMAND:
@@ -193,6 +213,19 @@ def show_objects(console: Console):
             console.print(f"{var}:{os.environ.get(var)}")
     else:
         console.print("No environment variables are set.")
+
+
+def cli_sync_objects(
+    engine: Engine,
+    config: AppConfig,
+    console: Console,
+    sync_credentials: bool = False,
+    sync_hosts: bool = False,
+):
+    try:
+        sync_objects(engine, config, sync_credentials, sync_hosts)
+    except Exception as e:
+        console.print(e)
 
 
 def show_version(console: Console):

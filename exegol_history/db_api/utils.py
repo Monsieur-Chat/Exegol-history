@@ -5,7 +5,8 @@ import platform
 ID_DELIMITER = ","
 ID_RANGE_DELIMITER = "-"
 
-MESSAGE_ID_NOT_EXIST = "The provided id does not exist !"
+MESSAGE_ID_NOT_EXIST = "The provided ID(s) does not exist !"
+OBJECT_ALREADY_EXIST = "The object already exist !"
 
 
 def copy_in_clipboard(input: str):
