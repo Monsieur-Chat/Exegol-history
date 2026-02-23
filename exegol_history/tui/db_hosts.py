@@ -266,9 +266,7 @@ class DbHostsApp(App):
             try:
                 edit_hosts(self.engine, [host])
             except RuntimeError as e:
-                self.notify(
-                    f"There was an error while editing: {e}", severity="error"
-                )
+                self.notify(f"There was an error while editing: {e}", severity="error")
 
             self.update_table()
 

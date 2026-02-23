@@ -1,3 +1,4 @@
+import sqlalchemy
 from sqlalchemy.orm import Mapped, mapped_column, Session
 from sqlalchemy import select, UniqueConstraint, Engine
 from exegol_history.db_api.base import Base
@@ -108,5 +109,7 @@ def edit_hosts(engine: Engine, hosts: list[Host]):
         try:
             session.bulk_update_mappings(Host, hosts)
             session.commit()
-        except Exception:
+        except sqlalchemy.exc.IntegrityError:
             raise RuntimeError(OBJECT_ALREADY_EXIST)
+        except Exception:
+            raise RuntimeError(MESSAGE_ID_NOT_EXIST)

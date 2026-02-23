@@ -68,7 +68,12 @@ def add_object(args: argparse.Namespace, engine: Engine, config: AppConfig):
             )
             # If set flag is provided, automatically set the credential
             if args.set:
-                credential_to_add = Credential(username=args.username, password=args.password, hash=args.hash, domain=args.domain)
+                credential_to_add = Credential(
+                    username=args.username,
+                    password=args.password,
+                    hash=args.hash,
+                    domain=args.domain,
+                )
                 write_credential_in_profile(credential_to_add, config)
         else:  # If no arguments are given, display the TUI adding screen
             app = DbCredsApp(config, engine, show_add_screen=True)

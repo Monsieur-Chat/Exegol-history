@@ -1,3 +1,4 @@
+import sqlalchemy
 from sqlalchemy.orm import Mapped, mapped_column, Session
 from sqlalchemy import case, select, UniqueConstraint, Engine
 from sqlalchemy.dialects.sqlite import insert
@@ -135,5 +136,7 @@ def edit_credentials(engine: Engine, credentials: list[Credential]):
         try:
             session.bulk_update_mappings(Credential, credentials)
             session.commit()
-        except Exception:
+        except sqlalchemy.exc.IntegrityError:
             raise RuntimeError(OBJECT_ALREADY_EXIST)
+        except Exception:
+            raise RuntimeError(MESSAGE_ID_NOT_EXIST)

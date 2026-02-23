@@ -52,7 +52,7 @@ class NetexecSyncer:
                 "SELECT ip, hostname, domain FROM hosts",
             ),
             "rdp.db": (
-                #"SELECT username, password FROM credentials",
+                # "SELECT username, password FROM credentials",
                 "",
                 "SELECT ip, hostname, domain FROM hosts",
             ),
@@ -90,8 +90,10 @@ class NetexecSyncer:
             if db_file_path.is_file():
                 if self.sync_credentials:
                     try:
-                        credentials += self.extract_credentials(db_file_path, queries[0])
-                    except Exception as e:
+                        credentials += self.extract_credentials(
+                            db_file_path, queries[0]
+                        )
+                    except Exception:
                         continue
 
                 if self.sync_hosts and (
@@ -99,7 +101,7 @@ class NetexecSyncer:
                 ):  # Need to fix FTP and SSH in Netexec
                     try:
                         hosts += self.extract_hosts(db_file_path, queries[1])
-                    except Exception as e:
+                    except Exception:
                         continue
 
         return (credentials, hosts)
@@ -136,7 +138,6 @@ class NetexecSyncer:
 
         return credentials
 
-
     def extract_hosts(self, db_file_path: str, query: str) -> list[dict]:
         conn = sqlite3.connect(db_file_path)
         cursor = conn.cursor()
@@ -150,7 +151,7 @@ class NetexecSyncer:
 
             if "domain" in columns:
                 ip, hostname, domain = row
-                hostname = hostname + '.' + domain
+                hostname = hostname + "." + domain
             elif "ip" in columns:
                 ip, hostname = row
             else:

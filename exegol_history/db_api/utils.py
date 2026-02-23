@@ -8,6 +8,7 @@ ID_RANGE_DELIMITER = "-"
 MESSAGE_ID_NOT_EXIST = "The provided ID(s) does not exist !"
 OBJECT_ALREADY_EXIST = "The object already exist !"
 
+
 def copy_in_clipboard(input: str):
     # Reference:
     # https://stackoverflow.com/questions/48499398/how-to-run-a-process-and-quit-after-the-script-is-over

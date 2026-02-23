@@ -324,9 +324,7 @@ class DbCredsApp(App):
             try:
                 edit_credentials(self.engine, [credential])
             except RuntimeError as e:
-                self.notify(
-                    f"There was an error while editing: {e}", severity="error"
-                )
+                self.notify(f"There was an error while editing: {e}", severity="error")
 
             self.update_table()
 
