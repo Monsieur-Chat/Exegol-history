@@ -10,6 +10,7 @@ from exegol_history.cli.functions import (
     IMPORT_SUBCOMMAND,
     SET_SUBCOMMAND,
     SHOW_SUBCOMMAND,
+    TARGET_SUBCOMMAND,
     UNSET_SUBCOMMAND,
     VERSION_SUBCOMMAND,
     SYNC_SUBCOMMAND,
@@ -71,6 +72,12 @@ def unset_subparser(subparsers):
     unset_subparsers.add_parser(
         HOSTS_SUBCOMMAND,
         help="Unset hosts variables.",
+    )
+
+    # Target
+    unset_subparsers.add_parser(
+        TARGET_SUBCOMMAND,
+        help="Unset TARGET variable.",
     )
 
 
@@ -360,4 +367,32 @@ def tui_subparser(subparsers):
     tui_subparsers.add_parser(
         HOSTS_SUBCOMMAND,
         help="Manage hosts using the TUI and set related environment variables.",
+    )
+
+    # Target
+    target_parser = tui_subparsers.add_parser(
+        TARGET_SUBCOMMAND,
+        help="Select a target from a list and set $TARGET.",
+    )
+    target_parser.add_argument(
+        "--no-reload-shell",
+        action="store_true",
+        help=(
+            "Keep the current process after updating profile.sh. "
+            "By default, your shell is replaced by a new login shell that sources the profile "
+            "so $TARGET is available immediately."
+        ),
+    )
+    target_parser.add_argument(
+        "--nmap-xml",
+        metavar="FILE",
+        help=(
+            "Import host IPv4/IPv6 addresses from an Nmap XML report (-oX) into the target list "
+            "(hostname used as comment when present). Can be combined with the TUI or with --no-tui."
+        ),
+    )
+    target_parser.add_argument(
+        "--no-tui",
+        action="store_true",
+        help="Do not open the target TUI (only useful with --nmap-xml to import and exit).",
     )

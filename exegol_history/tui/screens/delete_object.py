@@ -13,7 +13,8 @@ ID_IDS_INPUT = "ids_input"
 
 ID_CONFIRM_BUTTON = "confirm_button"
 ID_CONFIRM_RANGE_BUTTON = "confirm_range_button"
-ID_CANCEL_BUTTON = "cancel_button"
+ID_CANCEL_DELETE_SINGLE_BUTTON = "cancel_delete_single_button"
+ID_CANCEL_DELETE_RANGE_BUTTON = "cancel_delete_range_button"
 
 ID_SINGLE_TAB = "single_tab"
 ID_RANGE_TAB = "range_tab"
@@ -34,16 +35,19 @@ class DeleteObjectScreen(ModalScreen):
                 with TabPane("Selected object", id=ID_SINGLE_TAB):
                     yield Static(
                         "Are you sure you want to remove that object?",
-                        id="question",
+                        id="delete_question_single",
                     )
-                    yield ActionButtons()
+                    yield ActionButtons(cancel_button_id=ID_CANCEL_DELETE_SINGLE_BUTTON)
                 with TabPane("Multiple objects", id=ID_RANGE_TAB):
                     yield Static(
                         "Delete multiple objects, using comma to separate value, and '-' to include ranges.",
-                        id="question",
+                        id="delete_question_range",
                     )
                     yield Input(placeholder="1,2,6-8", id=ID_IDS_INPUT)
-                    yield ActionButtons(confirm_button_id=ID_CONFIRM_RANGE_BUTTON)
+                    yield ActionButtons(
+                        confirm_button_id=ID_CONFIRM_RANGE_BUTTON,
+                        cancel_button_id=ID_CANCEL_DELETE_RANGE_BUTTON,
+                    )
 
     def on_tabbed_content_tab_activated(self, event: Tabs.TabActivated):
         self.selected_tab = event.tab.id

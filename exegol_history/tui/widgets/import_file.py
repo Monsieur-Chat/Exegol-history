@@ -65,11 +65,11 @@ ID_FILE_TYPE_SELECT = "file_type_select"
 
 ID_FILE_TEXTAREA = "file_textarea"
 
-ID_ACTIONS_HORIZONTAL = "actions_horizontal"
+ID_IMPORT_ACTIONS_HORIZONTAL = "import_actions_horizontal"
 ID_KDBX_KEYFILE_HORIZONTAL = "kdbx_keyfile_horizontal"
 
 ID_CONFIRM_IMPORT_BUTTON = "confirm_import_button"
-ID_CANCEL_BUTTON = "cancel_button"
+ID_CANCEL_IMPORT_BUTTON = "cancel_import_button"
 ID_IMPORT_BUTTON = "import_file"
 ID_KDBX_KEYFILE_BUTTON = "kdbx_keyfile_button"
 
@@ -119,9 +119,9 @@ class ImportFile(Container):
         yield kdbx_keyfile_horizontal
         yield Horizontal(
             Button.success("Confirm", id=ID_CONFIRM_IMPORT_BUTTON),
-            Button.error("Cancel", id=ID_CANCEL_BUTTON),
+            Button.error("Cancel", id=ID_CANCEL_IMPORT_BUTTON),
             Button("Import", variant="primary", id=ID_IMPORT_BUTTON),
-            id=ID_ACTIONS_HORIZONTAL,
+            id=ID_IMPORT_ACTIONS_HORIZONTAL,
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -174,7 +174,7 @@ class ImportFile(Container):
             self.app.push_screen(
                 OpenFileScreen("Choose the KDBX keyfile location:"), check_import
             )
-        elif event.button.id == ID_CANCEL_BUTTON:
+        elif event.button.id == ID_CANCEL_IMPORT_BUTTON:
             self.app.pop_screen()
 
     def is_kdbx_format(self):

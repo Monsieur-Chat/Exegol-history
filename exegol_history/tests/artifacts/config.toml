@@ -1,6 +1,6 @@
 [paths]
 db_name = "exh.db"
-profile_sh_path = "/opt/tools/Exegol-history/profile.sh"
+profile_sh_path = "~/.exegol_history/profile.sh"
 
 # Keybinds list: https://github.com/Textualize/textual/blob/8f85ece761031a756a1ecfa345b519c9c915e04b/src/textual/keys.py#L9
 [keybindings]
@@ -44,4 +44,4 @@ add_icon = "➕"
 delete_icon = "➖"
 edit_icon = "📝"
 export_icon = "📤"
-inline = true
+inline = false

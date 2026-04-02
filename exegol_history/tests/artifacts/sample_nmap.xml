@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -oX sample_nmap.xml 10.10.10.0/28" start="1712000000" version="7.94" xmloutputversion="1.05">
+  <scaninfo type="syn" protocol="tcp" numservices="1000" services="1-1000"/>
+  <verbose level="0"/>
+  <debugging level="0"/>
+  <host>
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="10.10.10.1" addrtype="ipv4"/>
+    <address addr="00:11:22:33:44:01" addrtype="mac" vendor="FakeLab"/>
+    <hostnames>
+      <hostname name="gateway.lab.local" type="PTR"/>
+    </hostnames>
+  </host>
+  <host>
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="10.10.10.5" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="dc01.lab.local" type="PTR"/>
+    </hostnames>
+  </host>
+  <host>
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="10.10.10.10" addrtype="ipv4"/>
+    <hostnames/>
+  </host>
+  <host>
+    <status state="up" reason="echo-reply" reason_ttl="64"/>
+    <address addr="192.168.56.100" addrtype="ipv4"/>
+    <address addr="fe80::dead:beef:1" addrtype="ipv6"/>
+    <hostnames>
+      <hostname name="workstation-01" type="user"/>
+    </hostnames>
+  </host>
+  <runstats>
+    <finished time="1712000100" timestr="Thu Apr  1 12:00:00 2026" summary="Nmap done at Thu Apr  1 12:00:00 2026; 4 IP addresses (4 hosts up)" elapsed="100.0" exit="success"/>
+    <hosts up="4" down="0" total="4"/>
+  </runstats>
+</nmaprun>

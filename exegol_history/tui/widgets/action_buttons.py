@@ -25,5 +25,5 @@ class ActionButtons(Static):
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id in ID_CANCEL_BUTTON:
+        if event.button.id == self.cancel_button_id:
             self.app.pop_screen()

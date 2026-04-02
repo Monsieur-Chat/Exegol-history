@@ -1,12 +1,17 @@
 import argparse
 import os
 import sys
+import xml.etree.ElementTree as ET
+from pathlib import Path
 from exegol_history.cli.utils import (
     CREDS_VARIABLES,
     HOSTS_VARIABLES,
     console_error,
+    console_success,
+    try_respawn_shell_after_profile_write,
     write_credential_in_profile,
     write_host_in_profile,
+    write_target_in_profile,
 )
 from exegol_history.config.config import AppConfig
 from exegol_history.db_api.creds import (
@@ -33,12 +38,14 @@ from exegol_history.db_api.sync import sync_objects
 from exegol_history.db_api.utils import parse_ids
 from exegol_history.tui.db_creds import DbCredsApp
 from exegol_history.tui.db_hosts import DbHostsApp
+from exegol_history.tui.targets import TargetsApp
 from rich.console import Console
 from sqlalchemy import Engine
 import importlib.metadata
 
 CREDS_SUBCOMMAND = "creds"
 HOSTS_SUBCOMMAND = "hosts"
+TARGET_SUBCOMMAND = "target"
 
 VERSION_SUBCOMMAND = "version"
 ADD_SUBCOMMAND = "add"
@@ -192,6 +199,46 @@ def set_objects(
                 write_host_in_profile(Host(*row_data), config)
         except TypeError:  # It means the user left the TUI without choosing anything
             sys.exit(0)
+    elif args.subcommand == TARGET_SUBCOMMAND:
+        nmap_xml = getattr(args, "nmap_xml", None)
+        no_tui = getattr(args, "no_tui", False)
+        if no_tui and not nmap_xml:
+            console.print(
+                console_error("--no-tui is only valid together with --nmap-xml.")
+            )
+            sys.exit(2)
+
+        if nmap_xml:
+            path = Path(nmap_xml).expanduser().resolve()
+            if not path.is_file():
+                console.print(console_error(f"Nmap XML file not found: {path}"))
+                sys.exit(1)
+            try:
+                added = config.import_targets_from_nmap_xml(path)
+            except ET.ParseError as e:
+                console.print(console_error(f"Invalid Nmap XML: {e}"))
+                sys.exit(1)
+            console.print(
+                console_success(f"Imported {added} new target(s) from {path.name}.")
+            )
+
+        if no_tui:
+            sys.exit(0)
+
+        try:
+            app = TargetsApp(config)
+            selected = app.run(inline=config.theme.inline)
+            if selected is not None:
+                if isinstance(selected, (tuple, list)):
+                    selected = str(selected[0]).strip()
+                else:
+                    selected = str(selected).strip()
+                if selected:
+                    write_target_in_profile(selected, config)
+                    if not getattr(args, "no_reload_shell", False):
+                        try_respawn_shell_after_profile_write(config)
+        except TypeError:
+            sys.exit(0)
 
 
 def unset_objects(args: argparse.Namespace, config: AppConfig):
@@ -199,6 +246,8 @@ def unset_objects(args: argparse.Namespace, config: AppConfig):
         write_credential_in_profile(Credential(), config)
     elif args.subcommand == HOSTS_SUBCOMMAND:
         write_host_in_profile(Host(), config)
+    elif args.subcommand == TARGET_SUBCOMMAND:
+        write_target_in_profile("", config)
     else:
         raise NotImplementedError
     sys.exit(0)

@@ -6,9 +6,11 @@ from rich.traceback import install
 from exegol_history.cli.arguments import parse_arguments
 from exegol_history.cli.functions import (
     ADD_SUBCOMMAND,
+    CREDS_SUBCOMMAND,
     DELETE_SUBCOMMAND,
     EDIT_SUBCOMMAND,
     EXPORT_SUBCOMMAND,
+    HOSTS_SUBCOMMAND,
     IMPORT_SUBCOMMAND,
     SET_SUBCOMMAND,
     SHOW_SUBCOMMAND,
@@ -52,18 +54,23 @@ def main():
         EDIT_SUBCOMMAND,
         EXPORT_SUBCOMMAND,
         DELETE_SUBCOMMAND,
-        SET_SUBCOMMAND,
         SYNC_SUBCOMMAND,
     ]:
         need_db = True
         need_config = True
+    elif args.command == SET_SUBCOMMAND:
+        need_config = True
+        need_db = args.subcommand in [CREDS_SUBCOMMAND, HOSTS_SUBCOMMAND]
     # Functions that only need config
     elif args.command in [UNSET_SUBCOMMAND]:
         need_config = True
 
+    engine = None
     if need_config:
         config = AppConfig()
-        AppConfig.setup_profile(config.paths.profile_sh_path)
+        config.paths.profile_sh_path = str(
+            AppConfig.setup_profile(config.paths.profile_sh_path)
+        )
 
         db_path = AppConfig.EXEGOL_HISTORY_HOME_FOLDER_NAME / config.paths.db_name
 

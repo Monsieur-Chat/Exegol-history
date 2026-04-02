@@ -18,7 +18,8 @@ Button {
 /* General end */
 
 /* Button bottom bar (confirm, cancel, ...) */
-#actions_horizontal {
+#actions_horizontal,
+#import_actions_horizontal {
     align: center bottom;
     height: auto;
 }
@@ -76,8 +77,8 @@ ModalScreen > Container {
 }
 
 AddObjectScreen > Container {
-    height: 35;
-    width: 60;
+    height: 48;
+    width: 88;
 }
 
 EditObjectScreen > Container {
@@ -98,5 +99,21 @@ ExportObjectScreen > Container {
 OpenFileScreen > Container {
     height: 25;
     width: 80;
+}
+
+#add-target-screen > Container {
+    height: 36;
+    width: 92;
+    min-width: 70;
+}
+
+#add-target-screen Input {
+    width: 100%;
+}
+
+#delete-target-screen > Container {
+    height: 18;
+    width: 85;
+    min-width: 60;
 }
 /* Modal end */
